@@ -4,9 +4,15 @@
 #include "simple_logger.h"
 
 #include "g_entity.h"
+#include "g_collision.h"
 
 int main(int argc, char * argv[])
 {
+    Uint8 debug = false;
+    if( argc > 1)
+        if (0 == strcmp(argv[1], "debug"))
+            debug = true;
+
     /*variable declarations*/
     int done = 0;
     const Uint8 * keys;
@@ -16,17 +22,7 @@ int main(int argc, char * argv[])
     float mf = 0;
     Sprite *mouse;
     Vector4D mouseColor = {255,100,255,200};
-    
-    entity_manager_init(128);
 
-   // Entity *test;
-   // test = entity_new();
-
-   // if (!test)
-   // {
-   //     slog( "Failed to make entity." );
-   // }
-  
     /*program initializtion*/
     init_logger("gf2d.log");
     slog("---==== BEGIN ====---");
@@ -42,15 +38,13 @@ int main(int argc, char * argv[])
     gf2d_sprite_init(1024);
     SDL_ShowCursor(SDL_DISABLE);
     
+    collision_system_init( vector2d( 16, 16 ) );
+    entity_manager_init( 128 );
+
     /*demo setup*/
     sprite = gf2d_sprite_load_image("images/backgrounds/bg_flat.png");
     mouse = gf2d_sprite_load_all("images/pointer.png",32,32,16);
 
-   // test->sprite = gf2d_sprite_load_all( "images/pointer.png", 32, 32, 16 );
-    //if (!test->sprite)
-    //{
-    //    slog( "Failed to load sprite" );
-    //}
     Entity *q;
     Uint8 canSpawn = 1;
 
@@ -71,8 +65,12 @@ int main(int argc, char * argv[])
            // gf2d_sprite_draw_image(sprite,vector2d(0,0));
             
             entity_manager_draw_all();
-            entity_manager_draw_debug ();
-
+            
+            if (debug)
+            {
+                collision_system_draw_debug();
+                entity_manager_draw_debug();
+            }
             //UI elements last
             gf2d_sprite_draw(
                 mouse,

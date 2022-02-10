@@ -167,6 +167,10 @@ SDL_Renderer *gf2d_graphics_get_renderer()
 {
     return gf2d_graphics.renderer;
 }
+SDL_Window *gf2d_graphics_get_window()
+{
+    return gf2d_graphics.main_window;
+}
 
 SDL_Texture *gf2d_graphics_get_screen_texture()
 {

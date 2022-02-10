@@ -2,25 +2,29 @@
 #define __G_ENTITY_H__
 
 #include "gf2d_sprite.h"
+#include "g_collision.h"
 
 typedef struct Entity_S
 {
-	Uint8		_inuse;		/**<Flag to check if entity is being used*/
+	Uint8					_inuse;		/**<Flag to check if entity is being used*/
 
-	Sprite		*sprite;	/**<a pointer to the sprite that is used by this entity*/
-	float		frame;		/**<Current frame of sprite*/
+	Sprite					*sprite;	/**<a pointer to the sprite that is used by this entity*/
+	float					frame;		/**<Current frame of sprite*/
 
-	int			bBoxX;		/**<Bounding box of the sprite +- X*/
-	int			bBoxY;		/**<Bounding box of the sprite +- Y*/
+	int						bBoxX;		/**<Bounding box of the sprite +- X*/
+	int						bBoxY;		/**<Bounding box of the sprite +- Y*/
 
-	Vector2D	position;	/**<where the entity is in the world*/
-	Vector2D	scale;		/**<Vector2D Scale of entity*/
+	Vector2D				position;	/**<where the entity is in the world*/
+	Vector2D				scale;		/**<Vector2D Scale of entity*/
 
-	Uint8		visibility;	/**<Current visibility of entity*/
-	float		health;		/**<Current health of entity*/
-	//Weapon		weapon; /**<Currently held weapon by the entity*/
+	Uint8					visibility;	/**<Current visibility of entity*/
+	float					health;		/**<Current health of entity*/
+	//Weapon					weapon; /**<Currently held weapon by the entity*/
 
-	int			state;		/**<Current state of entity, waiting, attacking*/
+	int						state;		/**<Current state of entity, waiting, attacking*/
+	char					*tag;		/**<Tag for naming the entity*/
+	Uint8					team;		/**<Team the entity is on*/
+	struct CollisionCell_S	cell;		/**<Current cell position of the entity, used for collision detection*/
 }Entity;
 
 /**
