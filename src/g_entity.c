@@ -1,5 +1,6 @@
+#include <SDL.h.>
+#include "gf2d_draw.h"
 #include "g_entity.h"
-//#include "gf2d_sprite.h"
 #include "simple_logger.h"
 
 typedef struct
@@ -45,6 +46,21 @@ void entity_manager_draw_all()
 			entity_draw( &entity_manager.entity_list[i] );
 		}
 	}
+
+}void entity_manager_draw_debug()
+{
+	for (int i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (entity_manager.entity_list[i]._inuse)
+		{
+			if ( entity_manager.entity_list[i].bBoxX != NULL && entity_manager.entity_list[i].bBoxY != NULL )
+			{
+				SDL_Rect rectToDraw = { entity_manager.entity_list[i].position.x, entity_manager.entity_list[i].position.y, entity_manager.entity_list[i].bBoxX, entity_manager.entity_list[i].bBoxY };
+				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 255 ) );
+			}
+
+		}
+	}
 }
 
 void entity_manager_clear()
@@ -68,7 +84,6 @@ Entity *entity_new()
 			entity_manager.entity_list[i]._inuse = 1;
 			entity_manager.entity_list[i].scale.x = 1;
 			entity_manager.entity_list[i].scale.y = 1;
-
 			return (&entity_manager.entity_list[i]);
 		}
 	}

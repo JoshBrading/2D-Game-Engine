@@ -68,9 +68,10 @@ int main(int argc, char * argv[])
         gf2d_graphics_clear_screen();// clears drawing buffers
         // all drawing should happen betweem clear_screen and next_frame
             //backgrounds drawn first
-            gf2d_sprite_draw_image(sprite,vector2d(0,0));
+           // gf2d_sprite_draw_image(sprite,vector2d(0,0));
             
             entity_manager_draw_all();
+            entity_manager_draw_debug ();
 
             //UI elements last
             gf2d_sprite_draw(
@@ -90,6 +91,8 @@ int main(int argc, char * argv[])
             q = entity_new();
             q->sprite = gf2d_sprite_load_all( "images/pointer.png", 32, 32, 16 );
             q->position = vector2d( mx, my );
+            q->bBoxX = q->sprite->frame_w;
+            q->bBoxY = q->sprite->frame_h;
         }
 
         if ( !canSpawn && keys[SDL_SCANCODE_E])

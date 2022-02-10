@@ -10,12 +10,17 @@ typedef struct Entity_S
 	Sprite		*sprite;	/**<a pointer to the sprite that is used by this entity*/
 	float		frame;		/**<Current frame of sprite*/
 
+	int			bBoxX;		/**<Bounding box of the sprite +- X*/
+	int			bBoxY;		/**<Bounding box of the sprite +- Y*/
+
 	Vector2D	position;	/**<where the entity is in the world*/
 	Vector2D	scale;		/**<Vector2D Scale of entity*/
 
 	Uint8		visibility;	/**<Current visibility of entity*/
 	float		health;		/**<Current health of entity*/
 	//Weapon		weapon; /**<Currently held weapon by the entity*/
+
+	int			state;		/**<Current state of entity, waiting, attacking*/
 }Entity;
 
 /**
@@ -28,6 +33,11 @@ void entity_manager_init( Uint32 maxEntities );
  * @brief call draw on all entities
  */
 void entity_manager_draw_all();
+
+/**
+ * @brief Draw colliders for all entities
+ */
+void entity_manager_draw_debug();
 
 /**
  * @brief call free on all entities
