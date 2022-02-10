@@ -3,6 +3,8 @@
 #include "gf2d_sprite.h"
 #include "simple_logger.h"
 
+#include "g_entity.h"
+
 int main(int argc, char * argv[])
 {
     /*variable declarations*/
@@ -15,6 +17,16 @@ int main(int argc, char * argv[])
     Sprite *mouse;
     Vector4D mouseColor = {255,100,255,200};
     
+    entity_manager_init(128);
+
+   // Entity *test;
+   // test = entity_new();
+
+   // if (!test)
+   // {
+   //     slog( "Failed to make entity." );
+   // }
+  
     /*program initializtion*/
     init_logger("gf2d.log");
     slog("---==== BEGIN ====---");
@@ -33,6 +45,15 @@ int main(int argc, char * argv[])
     /*demo setup*/
     sprite = gf2d_sprite_load_image("images/backgrounds/bg_flat.png");
     mouse = gf2d_sprite_load_all("images/pointer.png",32,32,16);
+
+   // test->sprite = gf2d_sprite_load_all( "images/pointer.png", 32, 32, 16 );
+    //if (!test->sprite)
+    //{
+    //    slog( "Failed to load sprite" );
+    //}
+    Entity *q;
+    Uint8 canSpawn = 1;
+
     /*main game loop*/
     while(!done)
     {
@@ -49,6 +70,8 @@ int main(int argc, char * argv[])
             //backgrounds drawn first
             gf2d_sprite_draw_image(sprite,vector2d(0,0));
             
+            entity_manager_draw_all();
+
             //UI elements last
             gf2d_sprite_draw(
                 mouse,
@@ -61,8 +84,21 @@ int main(int argc, char * argv[])
                 (int)mf);
         gf2d_grahics_next_frame();// render current draw frame and skip to the next frame
         
+        if (canSpawn && keys[SDL_SCANCODE_Q])
+        {
+            canSpawn = 0;
+            q = entity_new();
+            q->sprite = gf2d_sprite_load_all( "images/pointer.png", 32, 32, 16 );
+            q->position = vector2d( mx, my );
+        }
+
+        if ( !canSpawn && keys[SDL_SCANCODE_E])
+        {
+            entity_manager_clear();
+            canSpawn = 1;
+        }
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
-        slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
+        //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
     }
     slog("---==== END ====---");
     return 0;
