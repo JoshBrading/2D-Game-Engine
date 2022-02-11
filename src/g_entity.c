@@ -2,6 +2,7 @@
 #include "gf2d_draw.h"
 #include "g_entity.h"
 #include "simple_logger.h"
+#include "g_collision.h"
 
 typedef struct
 {
@@ -112,3 +113,10 @@ void entity_free( Entity *self )
 	memset( self, 0, sizeof( self ) );
 }
 
+void entity_update ( Entity* self )
+{
+	if ( !self ) return;
+	CollisionCell *cell;
+	cell = collision_system_get_nearest_cell_within_range (self->position, 32.0f);
+	//cell->collision_cell_add_entity ( cell, self );
+}

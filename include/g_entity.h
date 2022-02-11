@@ -66,4 +66,9 @@ void entity_free( Entity *self );
  */
 void entity_draw( Entity *self );
 
+/**
+ * @brief Update the entity every frame
+ * @param Entity to update
+ */
+void entity_update ( Entity* self );
 #endif

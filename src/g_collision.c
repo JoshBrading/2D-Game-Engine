@@ -1,4 +1,6 @@
 #include <SDL.h>
+#include <stdlib.h>
+#include <math.h>
 #include "g_entity.h"
 #include "g_collision.h"
 #include "simple_logger.h"
@@ -35,7 +37,14 @@ void collision_system_draw_debug()
 		if (collision_system.cell_list[i]._inuse)
 		{
 			SDL_Rect rectToDraw = { collision_system.cell_list[i].cell_position.x, collision_system.cell_list[i].cell_position.y, collision_system.cell_list[i].bBox.x, collision_system.cell_list[i].bBox.y };
-			gf2d_draw_rect( rectToDraw, vector4d( 255, 0, 0, 255 ) );
+			if ( collision_system.cell_list[i].entity_count > 0 )
+			{
+				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 255 ) );
+			}
+			else
+			{
+				gf2d_draw_rect ( rectToDraw, vector4d ( 200, 200, 200, 255 ) );
+			}
 		}
 	}
 }
@@ -59,8 +68,42 @@ void collision_system_generate_cells( Vector2D cell_xy )
 			collision_system.cell_list[cell_num]._inuse = 1;
 			collision_system.cell_list[cell_num].cell_position = vector2d( row, col );
 			collision_system.cell_list[cell_num].bBox = vector2d( cell_x, cell_y );
+			collision_system.cell_list[cell_num].entity_count = -1;
 			cell_num++;
 		}
 	}
+	return;
+}
+
+CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D position, float distance )
+{
+	CollisionCell *cell;
+	cell = NULL;
+	for ( int i = 0; i < collision_system.cell_count; i++ )
+	{
+		if ( collision_system.cell_list[i]._inuse )
+		{
+			float dist = sqrt ( pow ( collision_system.cell_list[i].cell_position.x + (collision_system.cell_list[i].bBox.x/2) - position.x, 2 ) + pow ( collision_system.cell_list[i].cell_position.y - (collision_system.cell_list[i].bBox.y / 2) - position.y, 2 ) );
+			if ( dist < distance )
+			{
+				cell = &collision_system.cell_list[i];
+				distance = dist;
+
+			}
+		}
+
+	}
+	if ( !cell ) return;
+	return cell;
+}
+
+void collision_cell_add_entity ( CollisionCell* cell, Entity* ent )
+{
+	slog ( "Called" );
+	if ( !cell ) return;
+	if ( !ent ) return;
+	cell->entity_list[cell->entity_count + 1] = ent;
+	cell->entity_count += 1;
+	slog ( "CollisionCellAddEntity: Entity added to cell" );
 	return;
 }
