@@ -68,7 +68,7 @@ void collision_system_generate_cells( Vector2D cell_xy )
 			collision_system.cell_list[cell_num]._inuse = 1;
 			collision_system.cell_list[cell_num].cell_position = vector2d( row, col );
 			collision_system.cell_list[cell_num].bBox = vector2d( cell_x, cell_y );
-			collision_system.cell_list[cell_num].entity_count = -1;
+			collision_system.cell_list[cell_num].entity_count = 0;
 			cell_num++;
 		}
 	}
@@ -79,11 +79,19 @@ CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D positio
 {
 	CollisionCell *cell;
 	cell = NULL;
+	double x1, x2, y1, y2;
+
 	for ( int i = 0; i < collision_system.cell_count; i++ )
 	{
 		if ( collision_system.cell_list[i]._inuse )
 		{
-			float dist = sqrt ( pow ( collision_system.cell_list[i].cell_position.x + (collision_system.cell_list[i].bBox.x/2) - position.x, 2 ) + pow ( collision_system.cell_list[i].cell_position.y - (collision_system.cell_list[i].bBox.y / 2) - position.y, 2 ) );
+			x1 = (double)collision_system.cell_list[i].cell_position.x + (collision_system.cell_list[i].bBox.x / 2);
+			y1 = (double)collision_system.cell_list[i].cell_position.y + (collision_system.cell_list[i].bBox.y / 2);
+
+			x2 = position.x;
+			y2 = position.y;
+
+			float dist = sqrt( (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) );
 			if ( dist < distance )
 			{
 				cell = &collision_system.cell_list[i];
@@ -97,13 +105,22 @@ CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D positio
 	return cell;
 }
 
-void collision_cell_add_entity ( CollisionCell* cell, Entity* ent )
+void collision_cell_add_entity ( CollisionCell* cell, Uint32 ent_ID )
 {
-	slog ( "Called" );
+	slog( "called" );
 	if ( !cell ) return;
-	if ( !ent ) return;
-	cell->entity_list[cell->entity_count + 1] = ent;
-	cell->entity_count += 1;
-	slog ( "CollisionCellAddEntity: Entity added to cell" );
+	for (int i = 0; i <= cell->entity_count; i++)
+	{
+		if (cell->entity_index_list[i] == 0)
+		{
+			slog( "Entity_count: %i, I: %i", cell->entity_count, i );
+			cell->entity_index_list[cell->entity_count] = ent_ID;
+			cell->entity_count += 1;
+			slog( "CollisionCellAddEntity: Entity added to cell" );
+			return;
+		}
+		slog( "fail" );
+	}
+	slog( "CollisionCellAddEntity: No free space in entity_index_list" );
 	return;
 }

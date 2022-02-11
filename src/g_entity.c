@@ -85,6 +85,8 @@ Entity *entity_new()
 			entity_manager.entity_list[i]._inuse = 1;
 			entity_manager.entity_list[i].scale.x = 1;
 			entity_manager.entity_list[i].scale.y = 1;
+			entity_manager.entity_list[i]._id = i + 1;
+
 			return (&entity_manager.entity_list[i]);
 		}
 	}
@@ -118,5 +120,5 @@ void entity_update ( Entity* self )
 	if ( !self ) return;
 	CollisionCell *cell;
 	cell = collision_system_get_nearest_cell_within_range (self->position, 32.0f);
-	//cell->collision_cell_add_entity ( cell, self );
+	collision_cell_add_entity ( cell, self->_id );
 }

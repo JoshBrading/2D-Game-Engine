@@ -8,12 +8,14 @@ typedef struct Entity_S
 {
 	Uint8					_inuse;		/**<Flag to check if entity is being used*/
 
+	Uint32					_id;		/**<ID of an entity, assume ID cannot be 0*/
 	Sprite					*sprite;	/**<a pointer to the sprite that is used by this entity*/
 	float					frame;		/**<Current frame of sprite*/
 
 	int						bBoxX;		/**<Bounding box of the sprite +- X*/
 	int						bBoxY;		/**<Bounding box of the sprite +- Y*/
 
+	Vector2D				center;
 	Vector2D				position;	/**<where the entity is in the world*/
 	Vector2D				scale;		/**<Vector2D Scale of entity*/
 

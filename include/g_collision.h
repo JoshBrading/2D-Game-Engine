@@ -10,16 +10,27 @@ typedef struct CollisionCell_S
 	Uint32				entity_count;	/**<Number of entities in the collision cell*/
 	Vector2D			bBox;
 	Vector2D			cell_position;	/**<Cell position*/
-	struct Entity_S		**entity_list;	/**<List of all entities in cell*/
+	Uint32				entity_index_list[128];	/**<List of all entities in cell*/
 }CollisionCell;
 
+/**
+ * @brief initialize internal collision system
+ * @param number of horizontal and vertical cells
+ */
 void collision_system_init( Vector2D cell_xy );
 void collision_system_generate_cells( Vector2D cell_xy );
 
+/**
+ * @brief initialize internal entity management system
+ * @param max_entities how many concurrent entities to support
+ */
 void collision_system_draw_debug();
-void collision_detect_cell();
 
+/**
+ * @brief initialize internal entity management system
+ * @param max_entities how many concurrent entities to support
+ */
 CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D position, float distance );
 
-void collision_cell_add_entity ( CollisionCell *cell, struct Entity_S* ent );
+void collision_cell_add_entity ( CollisionCell *cell, Uint32 ent_ID );
 #endif

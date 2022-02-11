@@ -92,7 +92,7 @@ int main(int argc, char * argv[])
             q->bBoxX = q->sprite->frame_w;
             q->bBoxY = q->sprite->frame_h;
             CollisionCell *cell = collision_system_get_nearest_cell_within_range ( vector2d ( mx, my ), 32.0f );
-            collision_cell_add_entity ( cell, q );
+            collision_cell_add_entity ( cell, q->_id );
         }
 
         if ( !canSpawn && keys[SDL_SCANCODE_E])
