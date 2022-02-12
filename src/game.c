@@ -38,7 +38,7 @@ int main(int argc, char * argv[])
     gf2d_sprite_init(1024);
     SDL_ShowCursor(SDL_DISABLE);
     
-    collision_system_init( vector2d( 16, 16 ) );
+    collision_system_init( vector2d( 16, 12 ) );
     entity_manager_init( 128 );
 
     /*demo setup*/

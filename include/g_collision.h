@@ -19,6 +19,8 @@ typedef struct CollisionCell_S
  */
 void collision_system_init( Vector2D cell_xy );
 void collision_system_generate_cells( Vector2D cell_xy );
+void collision_system_check_neighbor_cells( Uint32 cell_index );
+CollisionCell *collision_system_get_cell_by_index( Uint32 index );
 
 /**
  * @brief initialize internal entity management system
