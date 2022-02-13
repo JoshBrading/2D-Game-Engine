@@ -46,8 +46,14 @@ int main(int argc, char * argv[])
     mouse = gf2d_sprite_load_all("images/pointer.png",32,32,16);
 
     Entity *q;
-    Uint8 canSpawn = 1;
+    q = entity_new();
+    q->sprite = mouse;
+    q->bBoxX = q->sprite->frame_w;
+    q->bBoxY = q->sprite->frame_h;
 
+
+    Uint32 time = 0;
+    Uint32 time2 = 0;
     /*main game loop*/
     while(!done)
     {
@@ -64,42 +70,40 @@ int main(int argc, char * argv[])
             //backgrounds drawn first
            // gf2d_sprite_draw_image(sprite,vector2d(0,0));
             
+            q->position = vector2d( mx, my );
+
             entity_manager_draw_all();
+            entity_manager_update_all();
             
+            if (SDL_GetTicks() > time + 20)
+            {
+                //collision_system_clear();
+                entity_manager_update_fixed_all();
+                time = SDL_GetTicks();
+            }
+            if (SDL_GetTicks() > time2 + 100)
+            {
+                //collision_system_clear();
+                time2 = SDL_GetTicks();
+            }
+
             if (debug)
             {
                 collision_system_draw_debug();
                 entity_manager_draw_debug();
             }
             //UI elements last
-            gf2d_sprite_draw(
-                mouse,
-                vector2d(mx,my),
-                NULL,
-                NULL,
-                NULL,
-                NULL,
-                &mouseColor,
-                (int)mf);
+            //gf2d_sprite_draw(
+            //    mouse,
+            //    vector2d(mx,my),
+            //    NULL,
+            //    NULL,
+            //    NULL,
+            //    NULL,
+            //    &mouseColor,
+            //    (int)mf);
         gf2d_grahics_next_frame();// render current draw frame and skip to the next frame
         
-        if (canSpawn && keys[SDL_SCANCODE_Q])
-        {
-            canSpawn = 0;
-            q = entity_new();
-            q->sprite = gf2d_sprite_load_all( "images/pointer.png", 32, 32, 16 );
-            q->position = vector2d( mx, my );
-            q->bBoxX = q->sprite->frame_w;
-            q->bBoxY = q->sprite->frame_h;
-            CollisionCell *cell = collision_system_get_nearest_cell_within_range ( vector2d ( mx, my ), 32.0f );
-            collision_cell_add_entity ( cell, q->_id );
-        }
-
-        if ( !canSpawn && keys[SDL_SCANCODE_E])
-        {
-            entity_manager_clear();
-            canSpawn = 1;
-        }
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
         //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
     }

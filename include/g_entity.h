@@ -12,8 +12,8 @@ typedef struct Entity_S
 	Sprite					*sprite;	/**<a pointer to the sprite that is used by this entity*/
 	float					frame;		/**<Current frame of sprite*/
 
-	int						bBoxX;		/**<Bounding box of the sprite +- X*/
-	int						bBoxY;		/**<Bounding box of the sprite +- Y*/
+	Uint32					bBoxX;		/**<Bounding box of the sprite +- X*/
+	Uint32					bBoxY;		/**<Bounding box of the sprite +- Y*/
 
 	Vector2D				center;
 	Vector2D				position;	/**<where the entity is in the world*/
@@ -23,10 +23,20 @@ typedef struct Entity_S
 	float					health;		/**<Current health of entity*/
 	//Weapon					weapon; /**<Currently held weapon by the entity*/
 
-	int						state;		/**<Current state of entity, waiting, attacking*/
+	Uint32					state;		/**<Current state of entity, waiting, attacking*/
 	char					*tag;		/**<Tag for naming the entity*/
 	Uint8					team;		/**<Team the entity is on*/
-	struct CollisionCell_S	cell;		/**<Current cell position of the entity, used for collision detection*/
+	struct CollisionCell_S*	cell;		/**<Current cell position of the entity, used for collision detection*/
+
+	void               (*think)(struct Entity_S *self); /* <pointer to the think function */
+	void               (*thinkFixed)(struct Entity_S *self); /* <pointer to the think fixed function */
+
+	void               (*update)(struct Entity_S *self); /* <pointer to the update function */
+	void               (*updateFixed)(struct Entity_S *self); /* <pointer to the update fixed function */
+
+	void               (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor); /* <pointer to the damage function */
+	void               (*onDeath)(struct Entity_S *self); /* <pointer to a funciton to call when the entity dies */
+
 }Entity;
 
 /**
@@ -69,8 +79,22 @@ void entity_free( Entity *self );
 void entity_draw( Entity *self );
 
 /**
- * @brief Update the entity every frame
- * @param Entity to update
+ * @brief run the think functions for ALL active entities
  */
-void entity_update ( Entity* self );
+void entity_manager_think_all();
+
+/**
+ * @brief run the think functions for ALL active entities at a fixed rate
+ */
+void entity_manager_think_fixed_all();
+
+/**
+ * @brief run the update functions for ALL active entities
+ */
+void entity_manager_update_all();
+
+/**
+ * @brief Fixed update runs the update functions for all entities at a fixed rate
+ */
+void entity_manager_update_fixed_all();
 #endif

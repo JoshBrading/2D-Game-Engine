@@ -115,10 +115,85 @@ void entity_free( Entity *self )
 	memset( self, 0, sizeof( self ) );
 }
 
-void entity_update ( Entity* self )
+void entity_think( Entity *self )
 {
-	if ( !self ) return;
-	CollisionCell *cell;
-	cell = collision_system_get_nearest_cell_within_range (self->position, 32.0f);
-	collision_cell_add_entity ( cell, self->_id );
+	if (!self)return;
+	if (self->think)self->think( self );
+}
+
+void entity_think_fixed( Entity *self )
+{
+	if (!self)return;
+	if (self->thinkFixed)self->thinkFixed( self );
+}
+
+void entity_manager_think_all()
+{
+	int i;
+	for (i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		entity_think( &entity_manager.entity_list[i] );
+	}
+}
+
+void entity_manager_think_fixed_all()
+{
+	int i;
+	for (i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		entity_think_fixed( &entity_manager.entity_list[i] );
+	}
+}
+
+void entity_update( Entity *self )
+{
+	if (!self)return;
+	if (self->update)self->update( self );
+}
+
+void entity_update_fixed( Entity *self )
+{
+	if (!self)return;
+	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->position, 32.0f );	
+	if (&self->cell->id != &cell->id)
+	{
+		collision_cell_remove_entity( self->cell, self );
+		self->cell = cell;
+		collision_cell_add_entity( cell, self );
+	}
+	if (self->updateFixed)self->updateFixed( self );
+}
+
+void entity_manager_update_all()
+{
+	int i;
+	for (i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		entity_update( &entity_manager.entity_list[i] );
+	}
+}
+
+void entity_manager_update_fixed_all()
+{
+	int i;
+	for (i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		entity_update_fixed( &entity_manager.entity_list[i] );
+	}
 }
