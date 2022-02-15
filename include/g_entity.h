@@ -12,8 +12,7 @@ typedef struct Entity_S
 	Sprite					*sprite;	/**<a pointer to the sprite that is used by this entity*/
 	float					frame;		/**<Current frame of sprite*/
 
-	Uint32					bBoxX;		/**<Bounding box of the sprite +- X*/
-	Uint32					bBoxY;		/**<Bounding box of the sprite +- Y*/
+	Rect					bounds;
 
 	Vector2D				center;
 	Vector2D				position;	/**<where the entity is in the world*/
@@ -77,6 +76,13 @@ void entity_free( Entity *self );
  * @param ent the entity to draw
  */
 void entity_draw( Entity *self );
+
+/**
+ * @brief Returns the entity with the given ID
+ * @param ID of the entity to return
+ * @return entity with ID
+ */
+Entity* entity_manager_get_by_id( Uint32 id );
 
 /**
  * @brief run the think functions for ALL active entities

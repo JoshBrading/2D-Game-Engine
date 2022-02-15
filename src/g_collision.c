@@ -42,7 +42,7 @@ void collision_system_draw_debug()
 			if ( collision_system.cell_list[i].entity_count > 0 )
 			{
 				collision_system_check_neighbor_cells( i );
-				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 255 ) );
+				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 128 ) );
 
 			}
 			//else
@@ -95,7 +95,7 @@ void collision_system_generate_cells( Vector2D cell_xy )
 	return;
 }
 
-void collision_system_check_neighbor_cells( Uint32 cell_index )
+void collision_system_check_neighbor_cells( Uint32 cell_index)
 {
 	Uint32 y_offset = collision_system.cell_xy.y;
 	Vector4D color = vector4d( 50, 25, 0, 255 );
@@ -116,7 +116,6 @@ void collision_system_check_neighbor_cells( Uint32 cell_index )
 			rectToDraw.w = collision_system.cell_list[pos[j][k]].bBox.x;
 			rectToDraw.h = collision_system.cell_list[pos[j][k]].bBox.y;
 			gf2d_draw_rect( rectToDraw, color );
-
 		}
 	}
 
@@ -165,8 +164,8 @@ void collision_cell_add_entity ( CollisionCell* cell, Entity* entity )
 		{
 			cell->entity_index_list[cell->entity_count] = entity->_id;
 			cell->entity_count += 1;
-			
-			slog( "CollisionCellAddEntity: Entity %i added to cell %i", entity->_id, cell->id );
+			//slog( "Entity Count: %i", cell->entity_count );
+			//slog( "CollisionCellAddEntity: Entity %i added to cell %i", entity->_id, cell->id );
 			return;
 		}
 	}
@@ -185,10 +184,79 @@ void collision_cell_remove_entity( CollisionCell *cell, Entity *entity )
 			cell->entity_index_list[cell->entity_count] = 0;
 			cell->entity_count -= 1;
 
-			slog( "CollisionCellRemoveEntity: Entity %i removed from cell %i", entity->_id, cell->id );
+			//slog( "CollisionCellRemoveEntity: Entity %i removed from cell %i", entity->_id, cell->id );
 			return;
 		}
 	}
 	slog( "CollisionCellRemoveEntity: Entity not in cell" );
 	return;
+}
+
+void collision_cell_update(CollisionCell* self)
+{
+	if (self->entity_count > 1)
+	{
+		for (int i = 0; i < self->entity_count; i++)
+		{
+			Entity *first = entity_manager_get_by_id( self->entity_index_list[i] );
+			if (!first) continue;
+			for (int h = 0; h < self->entity_count; h++)
+			{
+				if (h == i) continue;
+				Entity *second = entity_manager_get_by_id( self->entity_index_list[h] );
+				if (!second) continue;
+				collision_rect_test( first->bounds, second->bounds );
+			}
+			//collision_system_check_neighbor_cells( self->id, first );
+
+		}
+	}
+}
+
+int collision_rect_test( Rect A, Rect B )
+{
+	if (A.x < B.x + B.w &&
+		 A.x + A.w >= B.x &&
+		 A.y < B.y + B.h &&
+		 A.h + A.y > B.y)
+	{
+		SDL_Rect rectToDraw;
+		if (A.x < B.x)
+		{
+			rectToDraw.x = A.x;
+			rectToDraw.w = (B.x - A.x) + A.w;
+		}
+		if (A.x > B.x)
+		{
+			rectToDraw.x = B.x;
+			rectToDraw.w = (A.x - B.x) + B.w;
+		}
+		if (A.y < B.y)
+		{
+			rectToDraw.y = A.y;
+			rectToDraw.h = (B.y - A.y) + A.h;
+		}
+		if (A.y > B.y)
+		{
+			rectToDraw.y = B.y;
+			rectToDraw.h = (A.y - B.y) + B.h;
+		}
+		//rectToDraw.w = A.w + B.w;
+		//rectToDraw.h = A.h + B.h;
+		gf2d_draw_fill_rect( rectToDraw, vector4d( 255, 0, 0, 255 ) );
+		return 0;
+	}
+}
+
+void collision_system_update_all()
+{
+	int i;
+	for (i = 0; i < collision_system.cell_count; i++)
+	{
+		if (!collision_system.cell_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		collision_cell_update( &collision_system.cell_list[i] );
+	}
 }

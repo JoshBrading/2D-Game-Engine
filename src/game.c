@@ -5,6 +5,7 @@
 
 #include "g_entity.h"
 #include "g_collision.h"
+#include "g_test_bounce_ball.h"
 
 int main(int argc, char * argv[])
 {
@@ -38,7 +39,7 @@ int main(int argc, char * argv[])
     gf2d_sprite_init(1024);
     SDL_ShowCursor(SDL_DISABLE);
     
-    collision_system_init( vector2d( 16, 12 ) );
+    collision_system_init( vector2d( 6, 6 ) );
     entity_manager_init( 128 );
 
     /*demo setup*/
@@ -48,8 +49,20 @@ int main(int argc, char * argv[])
     Entity *q;
     q = entity_new();
     q->sprite = mouse;
-    q->bBoxX = q->sprite->frame_w;
-    q->bBoxY = q->sprite->frame_h;
+    q->bounds.w = q->sprite->frame_w;
+    q->bounds.h = q->sprite->frame_h;
+    q->bounds.x = 0;
+    q->bounds.y = 0;
+    
+    Entity *q2;
+    q2 = ball_new();
+    q2->sprite = mouse;
+    q2->bounds.w = q2->sprite->frame_w;
+    q2->bounds.h = q2->sprite->frame_h;
+    q2->bounds.x = q2->sprite->frame_w;
+    q2->bounds.y = q2->sprite->frame_h;
+    q2->position.x = 512;
+    q2->position.y = 270;
 
 
     Uint32 time = 0;
@@ -74,11 +87,12 @@ int main(int argc, char * argv[])
 
             entity_manager_draw_all();
             entity_manager_update_all();
-            
+            collision_system_update_all();
             if (SDL_GetTicks() > time + 20)
             {
                 //collision_system_clear();
                 entity_manager_update_fixed_all();
+                entity_manager_think_fixed_all();
                 time = SDL_GetTicks();
             }
             if (SDL_GetTicks() > time2 + 100)

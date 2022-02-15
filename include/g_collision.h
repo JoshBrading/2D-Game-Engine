@@ -14,6 +14,13 @@ typedef struct CollisionCell_S
 	Uint32				entity_index_list[128];	/**<List of all entities in cell*/
 }CollisionCell;
 
+typedef struct
+{
+	float x;
+	float y;
+	float w;
+	float h;
+}Rect;
 /**
  * @brief initialize internal collision system
  * @param number of horizontal and vertical cells
@@ -38,4 +45,8 @@ CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D positio
 void collision_cell_add_entity ( CollisionCell *cell, struct Entity_S* entity );
 
 void collision_cell_remove_entity( CollisionCell *cell, struct Entity_S *entity );
+
+void collision_system_update_all();
+
+int collision_rect_test( Rect A, Rect B );
 #endif

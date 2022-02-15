@@ -54,10 +54,10 @@ void entity_manager_draw_all()
 	{
 		if (entity_manager.entity_list[i]._inuse)
 		{
-			if ( entity_manager.entity_list[i].bBoxX != NULL && entity_manager.entity_list[i].bBoxY != NULL )
+			if ( entity_manager.entity_list[i].bounds.x != 0 && entity_manager.entity_list[i].bounds.y != 0 )
 			{
-				SDL_Rect rectToDraw = { entity_manager.entity_list[i].position.x, entity_manager.entity_list[i].position.y, entity_manager.entity_list[i].bBoxX, entity_manager.entity_list[i].bBoxY };
-				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 255 ) );
+				SDL_Rect rectToDraw = { entity_manager.entity_list[i].bounds.x, entity_manager.entity_list[i].bounds.y, entity_manager.entity_list[i].bounds.w, entity_manager.entity_list[i].bounds.h };
+				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 255, 0, 255 ) );
 			}
 
 		}
@@ -99,6 +99,21 @@ void entity_draw( Entity *self )
 	if (!self) return;
 	if (!self->sprite) return;
 	gf2d_sprite_draw( self->sprite, self->position, NULL, NULL, NULL, NULL, NULL, self->frame );
+}
+
+Entity *entity_manager_get_by_id( Uint32 id )
+{
+	int i;
+	for (i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (entity_manager.entity_list[i]._inuse)// not used yet
+		{
+			if (entity_manager.entity_list[i]._id == id)
+			{
+				return &entity_manager.entity_list[i];
+			}
+		}
+	}
 }
 
 void entity_free( Entity *self )
@@ -156,6 +171,8 @@ void entity_manager_think_fixed_all()
 void entity_update( Entity *self )
 {
 	if (!self)return;
+	self->bounds.x = self->position.x;
+	self->bounds.y = self->position.y;
 	if (self->update)self->update( self );
 }
 
