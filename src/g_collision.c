@@ -177,7 +177,9 @@ void collision_cell_add_entity ( CollisionCell* cell, Entity* entity )
 void collision_cell_remove_entity( CollisionCell *cell, Entity *entity )
 {
 	if (!cell) return;
-	for (int i = 0; i <= cell->max_entities; i++)
+	if (!entity)return;
+	//slog( "===================== REMOVE ====================" );
+	for (int i = 0; i <= cell->max_entities + 1; i++)
 	{
 		if (cell->entity_index_list[i] == entity->_id)
 		{
@@ -187,8 +189,18 @@ void collision_cell_remove_entity( CollisionCell *cell, Entity *entity )
 			//slog( "CollisionCellRemoveEntity: Entity %i removed from cell %i", entity->_id, cell->id );
 			return;
 		}
+		//slog( "CELL: %i, DOES NOT MATCH: %i", cell->entity_index_list[i], entity->_id );
+
 	}
+
+	for (int i = 0; i <= cell->max_entities + 1; i++)
+	{
+		slog( "CELL: %i, DOES NOT MATCH: %i", cell->entity_index_list[i], entity->_id );
+	}
+
 	slog( "CollisionCellRemoveEntity: Entity not in cell" );
+	slog( "CollisionCellRemoveEntity: Entity Count: %i", cell->entity_count );
+	//cell->entity_count = 0;
 	return;
 }
 
@@ -216,34 +228,35 @@ void collision_cell_update(CollisionCell* self)
 int collision_rect_test( Rect A, Rect B )
 {
 	if (A.x < B.x + B.w &&
-		 A.x + A.w >= B.x &&
+		 A.x + A.w > B.x &&
 		 A.y < B.y + B.h &&
 		 A.h + A.y > B.y)
 	{
 		SDL_Rect rectToDraw;
-		if (A.x < B.x)
-		{
-			rectToDraw.x = A.x;
-			rectToDraw.w = (B.x - A.x) + A.w;
-		}
-		if (A.x > B.x)
+		if (A.x <= B.x)
 		{
 			rectToDraw.x = B.x;
-			rectToDraw.w = (A.x - B.x) + B.w;
+			rectToDraw.w = (A.x + A.w) - B.x;
 		}
-		if (A.y < B.y)
+		if (A.x >= B.x)
 		{
-			rectToDraw.y = A.y;
-			rectToDraw.h = (B.y - A.y) + A.h;
+			rectToDraw.x = A.x;
+			rectToDraw.w = (B.x + B.w) - A.x;
 		}
-		if (A.y > B.y)
+		if (A.y <= B.y)
 		{
 			rectToDraw.y = B.y;
-			rectToDraw.h = (A.y - B.y) + B.h;
+			rectToDraw.h = (A.y + A.h) - B.y;
+		}
+		if (A.y >= B.y)
+		{
+			rectToDraw.y = A.y;
+			rectToDraw.h = (B.y + B.h) - A.y;
 		}
 		//rectToDraw.w = A.w + B.w;
 		//rectToDraw.h = A.h + B.h;
-		gf2d_draw_fill_rect( rectToDraw, vector4d( 255, 0, 0, 255 ) );
+		gf2d_draw_fill_rect( rectToDraw, vector4d( 255, 0, 0, 100 ) );
+		
 		return 0;
 	}
 }

@@ -173,19 +173,20 @@ void entity_update( Entity *self )
 	if (!self)return;
 	self->bounds.x = self->position.x;
 	self->bounds.y = self->position.y;
-	if (self->update)self->update( self );
-}
-
-void entity_update_fixed( Entity *self )
-{
-	if (!self)return;
-	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->position, 32.0f );	
+	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->position, 32.0f );
 	if (&self->cell->id != &cell->id)
 	{
 		collision_cell_remove_entity( self->cell, self );
 		self->cell = cell;
 		collision_cell_add_entity( cell, self );
 	}
+	if (self->update)self->update( self );
+}
+
+void entity_update_fixed( Entity *self )
+{
+	if (!self)return;
+
 	if (self->updateFixed)self->updateFixed( self );
 }
 
