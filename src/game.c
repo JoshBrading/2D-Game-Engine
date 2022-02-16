@@ -3,18 +3,20 @@
 #include "gf2d_graphics.h"
 #include "gf2d_sprite.h"
 #include "simple_logger.h"
+#include "g_globals.h"
 
 #include "g_entity.h"
 #include "g_collision.h"
 #include "g_test_bounce_ball.h"
 
+Uint8 g_debug;
 
 int main( int argc, char *argv[] )
 {
-    Uint8 debug = false;
+    g_debug = false;
     if (argc > 1)
         if (0 == strcmp( argv[1], "debug" ))
-            debug = true;
+            g_debug = true;
 
     /*variable declarations*/
     int done = 0;
@@ -76,9 +78,6 @@ int main( int argc, char *argv[] )
     SDL_Color color_blue = { 0, 0, 255 };
     SDL_Color color_cyan = { 0, 255, 255 };
 
-    SDL_Rect rect1, rect2;
-    SDL_Texture *texture1, *texture2;
-
     TTF_Init();
     SDL_Renderer *renderer = gf2d_graphics_get_renderer();
     TTF_Font *font = TTF_OpenFont( "fonts/arial.ttf", 16 );
@@ -120,7 +119,7 @@ int main( int argc, char *argv[] )
             //backgrounds drawn first
            // gf2d_sprite_draw_image(sprite,vector2d(0,0));
             
-            q->position = vector2d( mx, my );
+            q->position = vector2d( (float)mx, (float)my );
 
 
             entity_manager_draw_all();
@@ -133,7 +132,7 @@ int main( int argc, char *argv[] )
                 entity_manager_think_fixed_all();
                 time = SDL_GetTicks();
             }
-            if (debug)
+            if (g_debug)
             {
                 collision_system_draw_debug();
                 entity_manager_draw_debug();
@@ -151,6 +150,9 @@ int main( int argc, char *argv[] )
             //    &mouseColor,
             //    (int)mf);
         gf2d_grahics_next_frame();// render current draw frame and skip to the next frame
+        
+        if (keys[SDL_SCANCODE_Q]) g_debug = true;
+        if (keys[SDL_SCANCODE_E]) g_debug = false;
         
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
         //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());

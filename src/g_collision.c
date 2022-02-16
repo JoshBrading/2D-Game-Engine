@@ -6,6 +6,7 @@
 #include "simple_logger.h"
 #include "gf2d_graphics.h"
 #include "gf2d_draw.h"
+#include "g_globals.h"
 
 typedef struct
 {
@@ -117,12 +118,6 @@ void collision_system_check_neighbor_cells_for_collision( CollisionCell* cell, E
 		for (int k = 0; k < 3; k++)
 		{
 			CollisionCell testCell = collision_system.cell_list[pos[j][k]];
-			rectToDraw.x = testCell.cell_position.x;
-			rectToDraw.y = testCell.cell_position.y;
-			rectToDraw.w = testCell.bBox.x;
-			rectToDraw.h = testCell.bBox.y;
-			gf2d_draw_rect( rectToDraw, color );
-
 			if (testCell.entity_count > 0)
 			{
 				for (int i = 0; i < testCell.entity_count; i++)
@@ -133,6 +128,13 @@ void collision_system_check_neighbor_cells_for_collision( CollisionCell* cell, E
 					collision_rect_test( testCell.entity_list[i]->bounds, entity->bounds );
 				}
 			}
+
+			rectToDraw.x = testCell.cell_position.x;
+			rectToDraw.y = testCell.cell_position.y;
+			rectToDraw.w = testCell.bBox.x;
+			rectToDraw.h = testCell.bBox.y;
+			if( g_debug ) gf2d_draw_rect( rectToDraw, color );
+
 		}
 	}
 
@@ -276,7 +278,8 @@ int collision_rect_test( Rect A, Rect B )
 		}
 		//rectToDraw.w = A.w + B.w;
 		//rectToDraw.h = A.h + B.h;
-		gf2d_draw_fill_rect( rectToDraw, vector4d( 255, 0, 0, 100 ) );
+
+		if (g_debug) gf2d_draw_fill_rect( rectToDraw, vector4d( 255, 0, 0, 100 ) );
 		
 		return 0;
 	}

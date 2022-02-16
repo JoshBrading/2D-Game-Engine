@@ -4,6 +4,8 @@
 #include "simple_logger.h"
 #include "g_collision.h"
 
+#include "g_globals.h"
+
 typedef struct
 {
 
@@ -91,7 +93,7 @@ Entity *entity_new()
 		}
 	}
 	slog( "EntityNew: No free space" );
-	return;
+	return NULL;
 }
 
 void entity_draw( Entity *self )
@@ -114,6 +116,7 @@ Entity *entity_manager_get_by_id( Uint32 id )
 			}
 		}
 	}
+	return NULL;
 }
 
 void entity_free( Entity *self )
@@ -178,6 +181,11 @@ void entity_update( Entity *self )
 	{
 		collision_cell_remove_entity( self->cell, self );
 		collision_cell_add_entity( cell, self );
+	}
+	//Uint8 g_debug;
+	if (g_debug)
+	{
+		slog( "Test" );
 	}
 	if (self->update)self->update( self );
 }
