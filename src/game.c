@@ -10,6 +10,8 @@
 #include "g_test_bounce_ball.h"
 
 Uint8 g_debug;
+Uint32 g_screen_width;
+Uint32 g_screen_height;
 
 int main( int argc, char *argv[] )
 {
@@ -19,6 +21,10 @@ int main( int argc, char *argv[] )
             g_debug = true;
 
     /*variable declarations*/
+    
+    g_screen_width = 1200;
+    g_screen_height = 720;
+    
     int done = 0;
     const Uint8 *keys;
     Sprite *sprite;
@@ -40,23 +46,23 @@ int main( int argc, char *argv[] )
         vector4d( 0, 0, 0, 255 ),
         0 );
     gf2d_graphics_set_frame_delay( 16 );
-    gf2d_sprite_init( 1024 );
+    gf2d_sprite_init( 2048 );
     SDL_ShowCursor( SDL_DISABLE );
 
-    collision_system_init( vector2d( 20, 16 ) );
+    collision_system_init( vector2d( 32, 20 ) );
     entity_manager_init( 128 );
 
     /*demo setup*/
     sprite = gf2d_sprite_load_image( "images/backgrounds/bg_flat.png" );
     mouse = gf2d_sprite_load_all( "images/pointer.png", 32, 32, 16 );
 
-    Entity *q;
-    q = entity_new();
-    q->sprite = mouse;
-    q->bounds.w = q->sprite->frame_w;
-    q->bounds.h = q->sprite->frame_h;
-    q->bounds.x = 0;
-    q->bounds.y = 0;
+    //Entity *q;
+    //q = entity_new();
+    //q->sprite = mouse;
+    //q->bounds.w = q->sprite->frame_w;
+    //q->bounds.h = q->sprite->frame_h;
+    //q->bounds.x = 0;
+    //q->bounds.y = 0;
 
 
     for (int i = 0; i < 32; i++)
@@ -80,7 +86,7 @@ int main( int argc, char *argv[] )
 
     TTF_Init();
     SDL_Renderer *renderer = gf2d_graphics_get_renderer();
-    TTF_Font *font = TTF_OpenFont( "fonts/arial.ttf", 16 );
+    TTF_Font *font = TTF_OpenFont( "fonts/arial.ttf", 32 );
 
     if (font == NULL)
     {
@@ -88,21 +94,10 @@ int main( int argc, char *argv[] )
         exit( EXIT_FAILURE );
     }
 
-    SDL_Surface *surfaceMessage = TTF_RenderText_Blended( font, "Debug", color_cyan );
-
-    // now you can convert it into a texture
-    SDL_Texture *Message = SDL_CreateTextureFromSurface( renderer, surfaceMessage );
-
-    SDL_Rect Message_rect; //create a rect
-    Message_rect.x = 32;  //controls the rect's x coordinate 
-    Message_rect.y = 32; // controls the rect's y coordinte
-    Message_rect.w = 0; // controls the width of the rect
-    Message_rect.h = 0; // controls the height of the rect
-
-    TTF_SizeText( font, Message, &Message_rect.w, &Message_rect.h );
 
     Uint32 time = 0;
-
+    Uint32 time2 = 0;
+    char text[32];
     /*main game loop*/
     while(!done)
     {
@@ -119,7 +114,7 @@ int main( int argc, char *argv[] )
             //backgrounds drawn first
            // gf2d_sprite_draw_image(sprite,vector2d(0,0));
             
-            q->position = vector2d( (float)mx, (float)my );
+            //q->position = vector2d( (float)mx, (float)my );
 
 
             entity_manager_draw_all();
@@ -130,15 +125,37 @@ int main( int argc, char *argv[] )
                 //collision_system_clear();
                 entity_manager_update_fixed_all();
                 entity_manager_think_fixed_all();
+
                 time = SDL_GetTicks();
+            }
+
+            if (SDL_GetTicks() > time2 + 100)
+            {
+                snprintf( text, sizeof( text ), "FPS: %f", gf2d_graphics_get_frames_per_second() );
+                time2 = SDL_GetTicks();
             }
             if (g_debug)
             {
                 collision_system_draw_debug();
                 entity_manager_draw_debug();
             }
-            //SDL_RenderCopy( renderer, Message, NULL, &Message_rect);
-            //SDL_RenderCopy( renderer, texture2, NULL, &rect2 );
+
+          
+            slog( "%f", gf2d_graphics_get_frames_per_second() );
+            SDL_Surface *surfaceMessage = TTF_RenderText_Blended( font, text, color_cyan );
+
+            SDL_Texture *Message = SDL_CreateTextureFromSurface( renderer, surfaceMessage );
+
+            SDL_Rect Message_rect; //create a rect
+            Message_rect.x = 32;  //controls the rect's x coordinate 
+            Message_rect.y = 650; // controls the rect's y coordinte
+            Message_rect.w = 0; // controls the width of the rect
+            Message_rect.h = 0; // controls the height of the rect
+
+            TTF_SizeText( font, Message, &Message_rect.w, &Message_rect.h );
+
+            SDL_RenderCopy( renderer, Message, NULL, &Message_rect);
+
             //UI elements last
             //gf2d_sprite_draw(
             //    mouse,

@@ -182,11 +182,6 @@ void entity_update( Entity *self )
 		collision_cell_remove_entity( self->cell, self );
 		collision_cell_add_entity( cell, self );
 	}
-	//Uint8 g_debug;
-	if (g_debug)
-	{
-		slog( "Test" );
-	}
 	if (self->update)self->update( self );
 }
 

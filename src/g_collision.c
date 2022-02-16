@@ -39,17 +39,16 @@ void collision_system_draw_debug()
 	{
 		if (collision_system.cell_list[i]._inuse)
 		{
+
 			SDL_Rect rectToDraw = { collision_system.cell_list[i].cell_position.x, collision_system.cell_list[i].cell_position.y, collision_system.cell_list[i].bBox.x, collision_system.cell_list[i].bBox.y };
+			gf2d_draw_rect( rectToDraw, vector4d( 200, 200, 200, 20 ) );
+
 			if ( collision_system.cell_list[i].entity_count > 0 )
 			{
 				//collision_system_check_neighbor_cells( i );
-				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 128 ) );
+				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 255 ) );
 
 			}
-			//else
-			//{
-			//	gf2d_draw_rect ( rectToDraw, vector4d ( 200, 200, 200, 255 ) );
-			//}
 		}
 	}
 }
@@ -117,6 +116,7 @@ void collision_system_check_neighbor_cells_for_collision( CollisionCell* cell, E
 	{
 		for (int k = 0; k < 3; k++)
 		{
+			if (pos[j][k] > collision_system.cell_count) continue;
 			CollisionCell testCell = collision_system.cell_list[pos[j][k]];
 			if (testCell.entity_count > 0)
 			{
