@@ -1,4 +1,5 @@
 #include <SDL.h>
+#include <SDL_ttf.h>
 #include "gf2d_graphics.h"
 #include "gf2d_sprite.h"
 #include "simple_logger.h"
@@ -6,7 +7,7 @@
 #include "g_entity.h"
 #include "g_collision.h"
 #include "g_test_bounce_ball.h"
-#include <SDL_ttf.h>
+
 
 int main( int argc, char *argv[] )
 {
@@ -137,7 +138,7 @@ int main( int argc, char *argv[] )
                 collision_system_draw_debug();
                 entity_manager_draw_debug();
             }
-            SDL_RenderCopy( renderer, Message, NULL, &Message_rect);
+            //SDL_RenderCopy( renderer, Message, NULL, &Message_rect);
             //SDL_RenderCopy( renderer, texture2, NULL, &rect2 );
             //UI elements last
             //gf2d_sprite_draw(
@@ -152,7 +153,7 @@ int main( int argc, char *argv[] )
         gf2d_grahics_next_frame();// render current draw frame and skip to the next frame
         
         if (keys[SDL_SCANCODE_ESCAPE])done = 1; // exit condition
-       // slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
+        //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
     }
     slog("---==== END ====---");
     return 0;

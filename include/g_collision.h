@@ -12,6 +12,7 @@ typedef struct CollisionCell_S
 	Vector2D			bBox;
 	Vector2D			cell_position;	/**<Cell position*/
 	Uint32				entity_index_list[128];	/**<List of all entities in cell*/
+	struct Entity_S		**entity_list;
 }CollisionCell;
 
 typedef struct
@@ -27,7 +28,7 @@ typedef struct
  */
 void collision_system_init( Vector2D cell_xy );
 void collision_system_generate_cells( Vector2D cell_xy );
-void collision_system_check_neighbor_cells( Uint32 cell_index );
+void collision_system_check_neighbor_cells_for_collision( CollisionCell *cell, struct Entity_S *entity );
 CollisionCell *collision_system_get_cell_by_index( Uint32 index );
 
 /**

@@ -177,7 +177,6 @@ void entity_update( Entity *self )
 	if (&self->cell->id != &cell->id)
 	{
 		collision_cell_remove_entity( self->cell, self );
-		self->cell = cell;
 		collision_cell_add_entity( cell, self );
 	}
 	if (self->update)self->update( self );

@@ -41,7 +41,7 @@ void collision_system_draw_debug()
 			SDL_Rect rectToDraw = { collision_system.cell_list[i].cell_position.x, collision_system.cell_list[i].cell_position.y, collision_system.cell_list[i].bBox.x, collision_system.cell_list[i].bBox.y };
 			if ( collision_system.cell_list[i].entity_count > 0 )
 			{
-				collision_system_check_neighbor_cells( i );
+				//collision_system_check_neighbor_cells( i );
 				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 0, 0, 128 ) );
 
 			}
@@ -89,16 +89,21 @@ void collision_system_generate_cells( Vector2D cell_xy )
 			collision_system.cell_list[cell_num].entity_count = 0;
 			collision_system.cell_list[cell_num].id = cell_num;
 			collision_system.cell_list[cell_num].max_entities = 128;
+			collision_system.cell_list[cell_num].entity_list = gfc_allocate_array( sizeof( Entity ), collision_system.cell_list[cell_num].max_entities );
 			cell_num++;
 		}
 	}
 	return;
 }
 
-void collision_system_check_neighbor_cells( Uint32 cell_index)
+void collision_system_check_neighbor_cells_for_collision( CollisionCell* cell, Entity* entity)
 {
+	if (!entity) return;
+	if (!cell) return;
 	Uint32 y_offset = collision_system.cell_xy.y;
-	Vector4D color = vector4d( 50, 25, 0, 255 );
+	Vector4D color = vector4d( 100, 50, 0, 255 );
+
+	Uint32 cell_index = cell->id;
 
 	Uint32 pos[3][3] = {
 		{cell_index - y_offset - 1, cell_index - 1, cell_index + y_offset - 1},
@@ -111,11 +116,23 @@ void collision_system_check_neighbor_cells( Uint32 cell_index)
 	{
 		for (int k = 0; k < 3; k++)
 		{
-			rectToDraw.x = collision_system.cell_list[pos[j][k]].cell_position.x;
-			rectToDraw.y = collision_system.cell_list[pos[j][k]].cell_position.y;
-			rectToDraw.w = collision_system.cell_list[pos[j][k]].bBox.x;
-			rectToDraw.h = collision_system.cell_list[pos[j][k]].bBox.y;
+			CollisionCell testCell = collision_system.cell_list[pos[j][k]];
+			rectToDraw.x = testCell.cell_position.x;
+			rectToDraw.y = testCell.cell_position.y;
+			rectToDraw.w = testCell.bBox.x;
+			rectToDraw.h = testCell.bBox.y;
 			gf2d_draw_rect( rectToDraw, color );
+
+			if (testCell.entity_count > 0)
+			{
+				for (int i = 0; i < testCell.entity_count; i++)
+				{
+					if (!testCell.entity_list[i]) continue;
+					if (!testCell.entity_list[i]->_inuse) continue;
+					if (entity->_id == testCell.entity_list[i]->_id) continue;
+					collision_rect_test( testCell.entity_list[i]->bounds, entity->bounds );
+				}
+			}
 		}
 	}
 
@@ -157,13 +174,16 @@ CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D positio
 void collision_cell_add_entity ( CollisionCell* cell, Entity* entity )
 {
 	if ( !cell ) return;
+	if (!entity) return;
 	
 	for (int i = 0; i < cell->max_entities; i++)
 	{
-		if (cell->entity_index_list[i] == 0)
+		if (cell->entity_list[i] == NULL)
 		{
 			cell->entity_index_list[cell->entity_count] = entity->_id;
-			cell->entity_count += 1;
+			//cell->entity_count += 1;
+			entity->cell = cell;
+			cell->entity_list[i] = entity;
 			//slog( "Entity Count: %i", cell->entity_count );
 			//slog( "CollisionCellAddEntity: Entity %i added to cell %i", entity->_id, cell->id );
 			return;
@@ -181,21 +201,15 @@ void collision_cell_remove_entity( CollisionCell *cell, Entity *entity )
 	//slog( "===================== REMOVE ====================" );
 	for (int i = 0; i <= cell->max_entities + 1; i++)
 	{
-		if (cell->entity_index_list[i] == entity->_id)
-		{
-			cell->entity_index_list[cell->entity_count] = 0;
-			cell->entity_count -= 1;
+		//slog( "CollisionCellRemoveEntity: Entity %i removed from cell %i", entity->_id, cell->id );
 
-			//slog( "CollisionCellRemoveEntity: Entity %i removed from cell %i", entity->_id, cell->id );
+		if (!cell->entity_list[i]) continue;
+		if (cell->entity_list[i]->_id == entity->_id)
+		{
+			cell->entity_list[i] = NULL;
 			return;
 		}
 		//slog( "CELL: %i, DOES NOT MATCH: %i", cell->entity_index_list[i], entity->_id );
-
-	}
-
-	for (int i = 0; i <= cell->max_entities + 1; i++)
-	{
-		slog( "CELL: %i, DOES NOT MATCH: %i", cell->entity_index_list[i], entity->_id );
 	}
 
 	slog( "CollisionCellRemoveEntity: Entity not in cell" );
@@ -206,20 +220,27 @@ void collision_cell_remove_entity( CollisionCell *cell, Entity *entity )
 
 void collision_cell_update(CollisionCell* self)
 {
-	if (self->entity_count > 1)
+	if (!self) return;
+	Uint32 entCount = 0;
+	for (int i = 0; i < self->max_entities; i++)
+	{
+		if (self->entity_list[i]) entCount++;
+	}
+	self->entity_count = entCount;
+	if (self->entity_count > 0)
 	{
 		for (int i = 0; i < self->entity_count; i++)
 		{
-			Entity *first = entity_manager_get_by_id( self->entity_index_list[i] );
+			Entity *first = self->entity_list[i];
 			if (!first) continue;
 			for (int h = 0; h < self->entity_count; h++)
 			{
 				if (h == i) continue;
-				Entity *second = entity_manager_get_by_id( self->entity_index_list[h] );
+				Entity *second = self->entity_list[h];
 				if (!second) continue;
 				collision_rect_test( first->bounds, second->bounds );
 			}
-			//collision_system_check_neighbor_cells( self->id, first );
+			collision_system_check_neighbor_cells_for_collision( self, first );
 
 		}
 	}
