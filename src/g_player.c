@@ -91,9 +91,10 @@ void think(Entity* self)
 	//gf2d_draw_line( b.a, b.b, vector4d( 255, 255, 0, 255 ) );
 
 	//collision_line_line_test( a, b );
+	Vector2D hit_point;
 	Vector2D m = look_at_angle_slope( self->position, target );
-	raycast( self->position, m, 1024, NULL, NULL);
-
+	raycast( self->position, m, 1024, NULL, NULL, &hit_point);
+	//slog( "hit: ( %f, %f )", hit_point.x, hit_point.y );
 	//gf2d_draw_circle( target, 6, vector4d( 255, 0, 0, 255 ) );
 	//gf2d_draw_line( self->position, target, vector4d(255, 255, 0, 255) );
 	//self->position.x = (float)mx;

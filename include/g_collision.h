@@ -54,10 +54,9 @@ void collision_system_update_all();
 
 int collision_rect_test( Rect A, Rect B );
 
-int collision_line_line_test( Line A, Line B );
+int collision_line_line_test( Line A, Line B, Vector2D *hit_point );
 
-int collision_line_rect_test( Rect A, Line B );
-
+int collision_line_rect_test( Rect A, Line B, Vector2D *hit_point );
 
 void raycast( Vector2D origin, Vector2D direction, float max_distance, struct Entity_S *hit_entity, Vector2D *hit_point );
 #endif

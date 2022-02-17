@@ -48,7 +48,7 @@ int main( int argc, char *argv[] )
         700,
         vector4d( 0, 0, 0, 255 ),
         0 );
-    gf2d_graphics_set_frame_delay( 4 ); // Changed from 16
+    gf2d_graphics_set_frame_delay( 0 ); // Changed from 16
     gf2d_sprite_init( 128 );
     SDL_ShowCursor( SDL_DISABLE );
 
@@ -70,7 +70,7 @@ int main( int argc, char *argv[] )
     Entity *player = player_new();
     player->position = vector2d( 600, 350 );
 
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 64; i++)
     {
         Entity *q3;
         q3 = ball_new();
@@ -184,3 +184,5 @@ int main( int argc, char *argv[] )
 }
 
 /*eol@eof*/
+
+

@@ -8,6 +8,7 @@
 #include "gf2d_graphics.h"
 #include "gf2d_draw.h"
 #include "g_globals.h"
+#include "gfc_vector.h"
 
 typedef struct
 {
@@ -151,18 +152,16 @@ CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D positio
 	CollisionCell *cell;
 	cell = NULL;
 	double x1, x2, y1, y2;
-	distance = 128.0f;
+	distance = pow(distance, 2);
+
 	for ( int i = 0; i < collision_system.cell_count; i++ )
 	{
 		if ( collision_system.cell_list[i]._inuse )
 		{
-			x1 = (double)collision_system.cell_list[i].cell_position.x + (collision_system.cell_list[i].bBox.x / 2);
-			y1 = (double)collision_system.cell_list[i].cell_position.y + (collision_system.cell_list[i].bBox.y / 2);
+			Vector2D a;
+			vector2d_sub( a, position, collision_system.cell_list[i].cell_position );
+			float dist = vector2d_magnitude_squared( a );
 
-			x2 = position.x;
-			y2 = position.y;
-
-			float dist = sqrt( (x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1) );
 			if ( dist < distance )
 			{
 				cell = &collision_system.cell_list[i];
@@ -286,21 +285,21 @@ int collision_rect_test( Rect A, Rect B )
 	}
 }
 
-int collision_line_rect_test( Rect A, Line B )
+int collision_line_rect_test( Rect A, Line B, Vector2D *hit_point )
 {
 	  // check if the line has hit any of the rectangle's sides
-	// uses the Line/Line function below
 
+	Vector2D vec_top, vec_bottom, vec_left, vec_right;
 	Line top, bottom, left, right;
 
 	top.a = vector2d( A.x, A.y );
-	top.b = vector2d( A.y, A.x + A.w );
+	top.b = vector2d( A.x, A.y + A.h );
 
 	bottom.a = vector2d( A.x, A.y + A.h );
 	bottom.b = vector2d( A.x + A.w, A.y + A.h );
 
 	left.a = vector2d( A.x, A.y );
-	left.b = vector2d( A.x + A.h, A.y );
+	left.b = vector2d( A.x + A.w, A.y );
 
 	right.a = vector2d( A.x + A.w, A.y );
 	right.b = vector2d( A.x + A.w, A.y + A.h );
@@ -312,15 +311,65 @@ int collision_line_rect_test( Rect A, Line B )
 
 	gf2d_draw_line( B.a, B.b, vector4d( 255, 255, 0, 255 ) );
 
-	collision_line_line_test( top, B );
-	collision_line_line_test( bottom, B );
-	collision_line_line_test( left, B );
-	collision_line_line_test( right, B );
+
+	Vector2D a;
+	float dist;
+	float old_dist = FLT_MAX;
+
+
+	if( collision_line_line_test( top, B, &vec_top ) )
+	{
+		hit_point = &vec_top;
+		vector2d_sub( a, vector2d( A.x, A.y ), vec_top );
+		dist = vector2d_magnitude_squared( a );
+
+		//if (dist < old_dist)
+		//{
+			memcpy( hit_point, &vec_top, sizeof( hit_point ) );
+			old_dist = dist;
+		//}
+		//slog( "Top: (%f, %f)", vec_top.x, vec_top.y );
+		//slog( "Top cpy: (%f, %f)", hit_point->x, hit_point->y );
+			return true;
+	}
+	//if( collision_line_line_test( bottom, B, &vec_bottom ) )
+	//{
+	//	vector2d_sub( a, vector2d( A.x, A.y ), vec_bottom );
+	//	dist = vector2d_magnitude_squared( a );
+	//
+	//	if (dist < old_dist)
+	//	{
+	//		old_dist = dist;
+	//	}
+	//}
+	//if( collision_line_line_test( left, B, &vec_left ) )
+	//{
+	//
+	//	vector2d_sub( a, vector2d( A.x, A.y ), vec_left );
+	//	dist = vector2d_magnitude_squared( a );
+	//
+	//	if (dist < old_dist)
+	//	{
+	//		hit_point = &vec_left;
+	//		old_dist = dist;
+	//	}
+	//}
+	//if (collision_line_line_test( right, B, &vec_right ))
+	//{
+	//	vector2d_sub( a, vector2d( A.x, A.y ), vec_right );
+	//	dist = vector2d_magnitude_squared( a );
+	//
+	//	if (dist < old_dist)
+	//	{
+	//		hit_point = &vec_right;
+	//		old_dist = dist;
+	//	}
+	//}
 
 	return false;
 }
 
-int collision_line_line_test( Line A, Line B )
+int collision_line_line_test( Line A, Line B, Vector2D *hit_point )
 {
 	 // calculate the direction of the lines
 	float uA = ((B.b.x - B.a.x) * (A.a.y - B.a.y) - (B.b.y - B.a.y) * (A.a.x - B.a.x)) / ((B.b.y - B.a.y) * (A.b.x - A.a.x) - (B.b.x - B.a.x) * (A.b.y - A.a.y));
@@ -331,10 +380,11 @@ int collision_line_line_test( Line A, Line B )
 	{
 
 	// optionally, draw a circle where the lines meet
-		float intersectionX = A.a.x + (uA * (A.b.x - A.a.x));
-		float intersectionY = A.a.y + (uA * (A.b.y - A.a.y));
+		hit_point->x = A.a.x + (uA * (A.b.x - A.a.x));
+		hit_point->y = A.a.y + (uA * (A.b.y - A.a.y));
 
-		gf2d_draw_circle( vector2d(intersectionX, intersectionY), 6, vector4d( 255, 0, 0, 255 ) );
+		//slog( "Draw: %f | %f", hit_point->x, hit_point->y );
+		//gf2d_draw_circle( vector2d(intersectionX, intersectionY), 16, vector4d( 255, 255, 0, 255 ) );
 
 		return true;
 	}
@@ -358,8 +408,12 @@ void raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *h
 {
 	Vector2D a, b;
 	float m = direction.x / direction.y;
+	Line line;
+	Rect rect;
 
-	slog( "(%f, %f)", direction.x, direction.y );
+	line.a = origin;
+
+	//slog( "(%f, %f)", direction.x, direction.y );
 	if (m == 0)
 	{
 		a.x = origin.x + max_distance;
@@ -390,17 +444,49 @@ void raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *h
 
 	if (direction.x < 0 && direction.y < 0)
 	{
+		line.b = b;
 		gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
 		gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
 	}
 	else if (direction.x > 0 && direction.y < 0)
 	{
+		line.b = b;
 		gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
 		gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
 	}
 	else
 	{
+		line.b = a;
 		gf2d_draw_circle( a, 6, vector4d( 255, 0, 0, 255 ) );
 		gf2d_draw_line( origin, a, vector4d( 255, 255, 0, 255 ) );
+	}
+
+	EntityManager *entity_manager = entity_manager_get();
+
+	int i;
+	for (i = 0; i < entity_manager->entity_count; i++)
+	{
+		if (!entity_manager->entity_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+
+		Entity *ent = &entity_manager->entity_list[i];
+
+		rect.x = ent->bounds.x;
+		rect.y = ent->bounds.y;
+		rect.w = ent->bounds.w;
+		rect.h = ent->bounds.h;
+
+
+
+		if (collision_line_rect_test( rect, line, hit_point ))
+		{
+			//slog( "Top cpy: (%f, %f)", hit_point->x, hit_point->y );
+
+		}
+
+
+		//gf2d_draw_circle( vector2d(hit_point->x, hit_point->y), 16, vector4d( 255, 0, 0, 255 ) );
 	}
 }
