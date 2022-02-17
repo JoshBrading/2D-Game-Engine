@@ -9,6 +9,9 @@
 #include "g_collision.h"
 #include "g_test_bounce_ball.h"
 
+#include "g_player.h"
+
+
 Uint8 g_debug;
 Uint32 g_screen_width;
 Uint32 g_screen_height;
@@ -40,13 +43,13 @@ int main( int argc, char *argv[] )
     gf2d_graphics_initialize(
         "gf2d",
         1200,
-        720,
+        700,
         1200,
-        720,
+        700,
         vector4d( 0, 0, 0, 255 ),
         0 );
-    gf2d_graphics_set_frame_delay( 16 );
-    gf2d_sprite_init( 2048 );
+    gf2d_graphics_set_frame_delay( 4 ); // Changed from 16
+    gf2d_sprite_init( 128 );
     SDL_ShowCursor( SDL_DISABLE );
 
     collision_system_init( vector2d( 32, 20 ) );
@@ -64,8 +67,10 @@ int main( int argc, char *argv[] )
     //q->bounds.x = 0;
     //q->bounds.y = 0;
 
+    Entity *player = player_new();
+    player->position = vector2d( 600, 350 );
 
-    for (int i = 0; i < 32; i++)
+    for (int i = 0; i < 3; i++)
     {
         Entity *q3;
         q3 = ball_new();
@@ -74,6 +79,7 @@ int main( int argc, char *argv[] )
         q3->bounds.h = q3->sprite->frame_h;
         q3->bounds.x = q3->sprite->frame_w;
         q3->bounds.y = q3->sprite->frame_h;
+
         q3->position.x = rand()%1050;
         q3->position.y = rand()%550;
     }
@@ -93,7 +99,6 @@ int main( int argc, char *argv[] )
         fprintf( stderr, "error: font not found\n" );
         exit( EXIT_FAILURE );
     }
-
 
     Uint32 time = 0;
     Uint32 time2 = 0;
@@ -119,6 +124,8 @@ int main( int argc, char *argv[] )
 
             entity_manager_draw_all();
             entity_manager_update_all();
+            entity_manager_think_all();
+
             collision_system_update_all();
             if (SDL_GetTicks() > time + 20) // Run every 10ms
             {
@@ -140,8 +147,6 @@ int main( int argc, char *argv[] )
                 entity_manager_draw_debug();
             }
 
-          
-            slog( "%f", gf2d_graphics_get_frames_per_second() );
             SDL_Surface *surfaceMessage = TTF_RenderText_Blended( font, text, color_cyan );
 
             SDL_Texture *Message = SDL_CreateTextureFromSurface( renderer, surfaceMessage );

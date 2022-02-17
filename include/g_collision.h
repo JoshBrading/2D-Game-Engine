@@ -22,6 +22,13 @@ typedef struct
 	float w;
 	float h;
 }Rect;
+
+typedef struct
+{
+	Vector2D a;
+	Vector2D b;
+}Line;
+
 /**
  * @brief initialize internal collision system
  * @param number of horizontal and vertical cells
@@ -31,10 +38,6 @@ void collision_system_generate_cells( Vector2D cell_xy );
 void collision_system_check_neighbor_cells_for_collision( CollisionCell *cell, struct Entity_S *entity );
 CollisionCell *collision_system_get_cell_by_index( Uint32 index );
 
-/**
- * @brief initialize internal entity management system
- * @param max_entities how many concurrent entities to support
- */
 void collision_system_draw_debug();
 void collision_system_clear();
 /**
@@ -50,4 +53,11 @@ void collision_cell_remove_entity( CollisionCell *cell, struct Entity_S *entity 
 void collision_system_update_all();
 
 int collision_rect_test( Rect A, Rect B );
+
+int collision_line_line_test( Line A, Line B );
+
+int collision_line_rect_test( Rect A, Line B );
+
+
+void raycast( Vector2D origin, Vector2D direction, float max_distance, struct Entity_S *hit_entity, Vector2D *hit_point );
 #endif

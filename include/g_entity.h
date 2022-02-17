@@ -4,6 +4,7 @@
 #include "gf2d_sprite.h"
 #include "g_collision.h"
 
+
 typedef struct Entity_S
 {
 	Uint8					_inuse;		/**<Flag to check if entity is being used*/
@@ -14,29 +15,40 @@ typedef struct Entity_S
 
 	Rect					bounds;
 
-	Vector2D				center;
+	Vector2D				offset;		/**<Offset to the true center of the entity*/
 	Vector2D				position;	/**<where the entity is in the world*/
+	Vector3D				rotation;	/**<Rotation of the entity*/
 	Vector2D				scale;		/**<Vector2D Scale of entity*/
+	Vector2D				speed;
 
 	Uint8					visibility;	/**<Current visibility of entity*/
 	float					health;		/**<Current health of entity*/
-	//Weapon					weapon; /**<Currently held weapon by the entity*/
+	//Weapon					weapon;		/**<Currently held weapon by the entity*/
 
 	Uint32					state;		/**<Current state of entity, waiting, attacking*/
 	char					*tag;		/**<Tag for naming the entity*/
 	Uint8					team;		/**<Team the entity is on*/
 	struct CollisionCell_S*	cell;		/**<Current cell position of the entity, used for collision detection*/
 
-	void               (*think)(struct Entity_S *self); /* <pointer to the think function */
-	void               (*thinkFixed)(struct Entity_S *self); /* <pointer to the think fixed function */
+	void               (*think)(struct Entity_S *self);			/* <pointer to the think function */
+	void               (*thinkFixed)(struct Entity_S *self);	/* <pointer to the think fixed function */
 
-	void               (*update)(struct Entity_S *self); /* <pointer to the update function */
-	void               (*updateFixed)(struct Entity_S *self); /* <pointer to the update fixed function */
+	void               (*update)(struct Entity_S *self);		/* <pointer to the update function */
+	void               (*updateFixed)(struct Entity_S *self);	/* <pointer to the update fixed function */
 
-	void               (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor); /* <pointer to the damage function */
-	void               (*onDeath)(struct Entity_S *self); /* <pointer to a funciton to call when the entity dies */
+	void               (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor);	/* <pointer to the damage function */
+	void               (*onDeath)(struct Entity_S *self);											/* <pointer to a funciton to call when the entity dies */
 
 }Entity;
+
+
+typedef struct
+{
+
+	Entity *entity_list;
+	Uint32	entity_count;
+
+}EntityManager;
 
 /**
  * @brief initialize internal entity management system
@@ -103,4 +115,6 @@ void entity_manager_update_all();
  * @brief Fixed update runs the update functions for all entities at a fixed rate
  */
 void entity_manager_update_fixed_all();
+
+EntityManager *entity_manager_get();
 #endif

@@ -1,6 +1,7 @@
 #include <SDL.h>
 #include <stdlib.h>
 #include <math.h>
+#include <float.h>
 #include "g_entity.h"
 #include "g_collision.h"
 #include "simple_logger.h"
@@ -21,7 +22,7 @@ void collision_system_init( Vector2D cell_xy )
 {
 	collision_system.cell_xy = cell_xy;
 	Uint32 maxCells = cell_xy.x * cell_xy.y;
-	collision_system.cell_list = gfc_allocate_array( sizeof( CollisionCell ), maxCells );
+	collision_system.cell_list = gfc_allocate_array( sizeof( CollisionCell ), maxCells ); // This is probably wrong...
 	if (collision_system.cell_list == NULL)
 	{
 		slog( "CollisionSystemInit: Failed to allocate array of size: %i", maxCells );
@@ -285,6 +286,61 @@ int collision_rect_test( Rect A, Rect B )
 	}
 }
 
+int collision_line_rect_test( Rect A, Line B )
+{
+	  // check if the line has hit any of the rectangle's sides
+	// uses the Line/Line function below
+
+	Line top, bottom, left, right;
+
+	top.a = vector2d( A.x, A.y );
+	top.b = vector2d( A.y, A.x + A.w );
+
+	bottom.a = vector2d( A.x, A.y + A.h );
+	bottom.b = vector2d( A.x + A.w, A.y + A.h );
+
+	left.a = vector2d( A.x, A.y );
+	left.b = vector2d( A.x + A.h, A.y );
+
+	right.a = vector2d( A.x + A.w, A.y );
+	right.b = vector2d( A.x + A.w, A.y + A.h );
+
+	gf2d_draw_line( top.a, top.b, vector4d( 255, 255, 0, 255 ) );
+	gf2d_draw_line( bottom.a, bottom.b, vector4d( 255, 255, 0, 255 ) );
+	gf2d_draw_line( left.a, left.b, vector4d( 255, 255, 0, 255 ) );
+	gf2d_draw_line( right.a, right.b, vector4d( 255, 255, 0, 255 ) );
+
+	gf2d_draw_line( B.a, B.b, vector4d( 255, 255, 0, 255 ) );
+
+	collision_line_line_test( top, B );
+	collision_line_line_test( bottom, B );
+	collision_line_line_test( left, B );
+	collision_line_line_test( right, B );
+
+	return false;
+}
+
+int collision_line_line_test( Line A, Line B )
+{
+	 // calculate the direction of the lines
+	float uA = ((B.b.x - B.a.x) * (A.a.y - B.a.y) - (B.b.y - B.a.y) * (A.a.x - B.a.x)) / ((B.b.y - B.a.y) * (A.b.x - A.a.x) - (B.b.x - B.a.x) * (A.b.y - A.a.y));
+	float uB = ((A.b.x - A.a.x) * (A.a.y - B.a.y) - (A.b.y - A.a.y) * (A.a.x - B.a.x)) / ((B.b.y - B.a.y) * (A.b.x - A.a.x) - (B.b.x - B.a.x) * (A.b.y - A.a.y));
+
+	// if uA and uB are between 0-1, lines are colliding
+	if (uA >= 0 && uA <= 1 && uB >= 0 && uB <= 1)
+	{
+
+	// optionally, draw a circle where the lines meet
+		float intersectionX = A.a.x + (uA * (A.b.x - A.a.x));
+		float intersectionY = A.a.y + (uA * (A.b.y - A.a.y));
+
+		gf2d_draw_circle( vector2d(intersectionX, intersectionY), 6, vector4d( 255, 0, 0, 255 ) );
+
+		return true;
+	}
+	return false;
+}
+
 void collision_system_update_all()
 {
 	int i;
@@ -295,5 +351,56 @@ void collision_system_update_all()
 			continue;// skip this iteration of the loop
 		}
 		collision_cell_update( &collision_system.cell_list[i] );
+	}
+}
+
+void raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *hit_entity, Vector2D *hit_point )
+{
+	Vector2D a, b;
+	float m = direction.x / direction.y;
+
+	slog( "(%f, %f)", direction.x, direction.y );
+	if (m == 0)
+	{
+		a.x = origin.x + max_distance;
+		a.y = origin.y;
+
+		b.x = origin.x - max_distance;
+		b.y = origin.y;
+	}
+	else if (m == FLT_MAX)
+	{
+		a.x = origin.x;
+		a.y = origin.y + max_distance;
+
+		b.x = origin.x;
+		b.y = origin.y - max_distance;
+	}
+	else
+	{
+		float dx = (max_distance / sqrt( 1 + (m * m) ));
+		float dy = m * dx;
+
+		a.x = origin.x + dx;
+		a.y = origin.y + dy;
+		b.x = origin.x - dx;
+		b.y = origin.y - dy;
+	}
+
+
+	if (direction.x < 0 && direction.y < 0)
+	{
+		gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
+		gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
+	}
+	else if (direction.x > 0 && direction.y < 0)
+	{
+		gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
+		gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
+	}
+	else
+	{
+		gf2d_draw_circle( a, 6, vector4d( 255, 0, 0, 255 ) );
+		gf2d_draw_line( origin, a, vector4d( 255, 255, 0, 255 ) );
 	}
 }

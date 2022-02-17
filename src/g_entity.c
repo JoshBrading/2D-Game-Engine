@@ -6,13 +6,6 @@
 
 #include "g_globals.h"
 
-typedef struct
-{
-
-	Entity *entity_list;
-	Uint32	entity_count;
-
-}EntityManager;
 
 static EntityManager entity_manager = { 0 };
 
@@ -87,7 +80,9 @@ Entity *entity_new()
 			entity_manager.entity_list[i]._inuse = 1;
 			entity_manager.entity_list[i].scale.x = 1;
 			entity_manager.entity_list[i].scale.y = 1;
-			entity_manager.entity_list[i]._id = i + 1;
+			entity_manager.entity_list[i].offset.x = 0;
+			entity_manager.entity_list[i].offset.y = 0;
+			entity_manager.entity_list[i]._id = i + 1; // FIXME
 
 			return (&entity_manager.entity_list[i]);
 		}
@@ -100,7 +95,7 @@ void entity_draw( Entity *self )
 {
 	if (!self) return;
 	if (!self->sprite) return;
-	gf2d_sprite_draw( self->sprite, self->position, NULL, NULL, NULL, NULL, NULL, self->frame );
+	gf2d_sprite_draw( self->sprite, vector2d(self->position.x - self->offset.x, self->position.y - self->offset.y), &self->scale, NULL, &self->rotation, NULL, NULL, self->frame );
 }
 
 Entity *entity_manager_get_by_id( Uint32 id )
@@ -174,8 +169,8 @@ void entity_manager_think_fixed_all()
 void entity_update( Entity *self )
 {
 	if (!self)return;
-	self->bounds.x = self->position.x;
-	self->bounds.y = self->position.y;
+	self->bounds.x = self->position.x - self->offset.x;
+	self->bounds.y = self->position.y - self->offset.y;
 	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->position, 32.0f );
 	if (&self->cell->id != &cell->id)
 	{
@@ -216,4 +211,24 @@ void entity_manager_update_fixed_all()
 		}
 		entity_update_fixed( &entity_manager.entity_list[i] );
 	}
+}
+
+Entity* entity_manager_get_entity_in_range( Vector2D position, float range )
+{
+	int i;
+	for (i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+	//	entity_update( &entity_manager.entity_list[i] );
+	}
+
+	return NULL;
+}
+
+EntityManager *entity_manager_get()
+{
+	return &entity_manager;
 }
