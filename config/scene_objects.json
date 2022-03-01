@@ -1,0 +1,16 @@
+{"Objects":
+[
+    {
+        "name" : "Box 25x200",
+        "file_name": "/images/objects/Box_25x200.png",
+        "has_collider" : true,
+        "collider_WH" : ["25", "200"]
+    },
+    {
+      "name" : "Box 25x100",
+      "file_name": "/images/objects/Box_25x100.png",
+      "has_collider" : true,
+      "collider_WH" : ["25", "100"]
+    }
+]
+}

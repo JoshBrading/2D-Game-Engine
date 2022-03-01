@@ -11,7 +11,7 @@ Vector2D target;
 Entity *player_new()
 {
 	Entity *ent = entity_new();
-	if (!ent) return;
+	if (!ent) return NULL;
 
 	ent->think = think;
 	ent->thinkFixed = think_fixed;
@@ -93,10 +93,15 @@ void think(Entity* self)
 	//collision_line_line_test( a, b );
 	Vector2D hit_point;
 	Vector2D m = look_at_angle_slope( self->position, target );
-	raycast( self->position, m, 1024, NULL, NULL, &hit_point);
-	//slog( "hit: ( %f, %f )", hit_point.x, hit_point.y );
-	//gf2d_draw_circle( target, 6, vector4d( 255, 0, 0, 255 ) );
-	//gf2d_draw_line( self->position, target, vector4d(255, 255, 0, 255) );
+	Entity *ent;
+	if (raycast( self->position, m, 1024, NULL, &hit_point, self->_id ))
+	{
+		gf2d_draw_circle( hit_point, 8, vector4d( 255, 0, 0, 255 ) );
+		gf2d_draw_line( self->position, hit_point, vector4d( 255, 255, 0, 255 ) );
+	//	slog( "Entity: %i raycast touched: %i", self->_id, ent->_id );
+	}
+	
+
 	//self->position.x = (float)mx;
 	//self->position.y = (float)my;
 

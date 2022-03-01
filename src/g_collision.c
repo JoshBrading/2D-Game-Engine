@@ -292,79 +292,95 @@ int collision_line_rect_test( Rect A, Line B, Vector2D *hit_point )
 	Vector2D vec_top, vec_bottom, vec_left, vec_right;
 	Line top, bottom, left, right;
 
+	Uint8 col_top, col_bottom, col_left, col_right;
+
 	top.a = vector2d( A.x, A.y );
-	top.b = vector2d( A.x, A.y + A.h );
+	top.b = vector2d( A.x + A.w, A.y );
 
 	bottom.a = vector2d( A.x, A.y + A.h );
 	bottom.b = vector2d( A.x + A.w, A.y + A.h );
 
 	left.a = vector2d( A.x, A.y );
-	left.b = vector2d( A.x + A.w, A.y );
+	left.b = vector2d( A.x, A.y + A.h );
 
 	right.a = vector2d( A.x + A.w, A.y );
 	right.b = vector2d( A.x + A.w, A.y + A.h );
 
-	gf2d_draw_line( top.a, top.b, vector4d( 255, 255, 0, 255 ) );
-	gf2d_draw_line( bottom.a, bottom.b, vector4d( 255, 255, 0, 255 ) );
-	gf2d_draw_line( left.a, left.b, vector4d( 255, 255, 0, 255 ) );
-	gf2d_draw_line( right.a, right.b, vector4d( 255, 255, 0, 255 ) );
+	//gf2d_draw_line( top.a, top.b, vector4d( 255, 255, 0, 255 ) );
+	//gf2d_draw_line( bottom.a, bottom.b, vector4d( 255, 255, 0, 255 ) );
+	//gf2d_draw_line( left.a, left.b, vector4d( 255, 255, 0, 255 ) );
+	//gf2d_draw_line( right.a, right.b, vector4d( 255, 255, 0, 255 ) );
 
-	gf2d_draw_line( B.a, B.b, vector4d( 255, 255, 0, 255 ) );
+	//gf2d_draw_line( B.a, B.b, vector4d( 255, 255, 0, 255 ) );
 
+	col_top = collision_line_line_test( B, top, &vec_top );
+	col_bottom = collision_line_line_test( B, bottom, &vec_bottom );
+	col_left = collision_line_line_test( B, left, &vec_left );
+	col_right = collision_line_line_test( B, right, &vec_right );
 
-	Vector2D a;
 	float dist;
 	float old_dist = FLT_MAX;
 
+	Vector2D a;
 
-	if( collision_line_line_test( top, B, &vec_top ) )
+
+	if (col_top)
 	{
-		hit_point = &vec_top;
-		vector2d_sub( a, vector2d( A.x, A.y ), vec_top );
+		vector2d_sub( a, B.a, vec_top );
 		dist = vector2d_magnitude_squared( a );
 
-		//if (dist < old_dist)
-		//{
-			memcpy( hit_point, &vec_top, sizeof( hit_point ) );
+		if (dist < old_dist)
+		{
+			hit_point->x = vec_top.x;
+			hit_point->y = vec_top.y;
+
 			old_dist = dist;
-		//}
-		//slog( "Top: (%f, %f)", vec_top.x, vec_top.y );
-		//slog( "Top cpy: (%f, %f)", hit_point->x, hit_point->y );
-			return true;
+		}
 	}
-	//if( collision_line_line_test( bottom, B, &vec_bottom ) )
-	//{
-	//	vector2d_sub( a, vector2d( A.x, A.y ), vec_bottom );
-	//	dist = vector2d_magnitude_squared( a );
-	//
-	//	if (dist < old_dist)
-	//	{
-	//		old_dist = dist;
-	//	}
-	//}
-	//if( collision_line_line_test( left, B, &vec_left ) )
-	//{
-	//
-	//	vector2d_sub( a, vector2d( A.x, A.y ), vec_left );
-	//	dist = vector2d_magnitude_squared( a );
-	//
-	//	if (dist < old_dist)
-	//	{
-	//		hit_point = &vec_left;
-	//		old_dist = dist;
-	//	}
-	//}
-	//if (collision_line_line_test( right, B, &vec_right ))
-	//{
-	//	vector2d_sub( a, vector2d( A.x, A.y ), vec_right );
-	//	dist = vector2d_magnitude_squared( a );
-	//
-	//	if (dist < old_dist)
-	//	{
-	//		hit_point = &vec_right;
-	//		old_dist = dist;
-	//	}
-	//}
+	if (col_bottom)
+	{
+		vector2d_sub( a, B.a, vec_bottom );
+		dist = vector2d_magnitude_squared( a );
+
+		if (dist < old_dist)
+		{
+			hit_point->x = vec_bottom.x;
+			hit_point->y = vec_bottom.y;
+
+			old_dist = dist;
+		}
+	}
+	if (col_left)
+	{
+		vector2d_sub( a, B.a, vec_left );
+		dist = vector2d_magnitude_squared( a );
+
+		if (dist < old_dist)
+		{
+			hit_point->x = vec_left.x;
+			hit_point->y = vec_left.y;
+
+			old_dist = dist;
+		}
+	}
+	if (col_right)
+	{
+		vector2d_sub( a, B.a, vec_right );
+		dist = vector2d_magnitude_squared( a );
+
+		if (dist < old_dist)
+		{
+			hit_point->x = vec_right.x;
+			hit_point->y = vec_right.y;
+
+			old_dist = dist;
+		}
+	}
+
+	if (col_top || col_bottom || col_left || col_right)
+	{
+		return true;
+	}
 
 	return false;
 }
@@ -404,9 +420,10 @@ void collision_system_update_all()
 	}
 }
 
-void raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *hit_entity, Vector2D *hit_point )
+// TODO: Clean this function up!
+int raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *hit_entity, Vector2D *hit_point, Uint32 id_mask)
 {
-	Vector2D a, b;
+	Vector2D a, b, temp;
 	float m = direction.x / direction.y;
 	Line line;
 	Rect rect;
@@ -445,31 +462,34 @@ void raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *h
 	if (direction.x < 0 && direction.y < 0)
 	{
 		line.b = b;
-		gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
-		gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
+		//gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
+		//gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
 	}
 	else if (direction.x > 0 && direction.y < 0)
 	{
 		line.b = b;
-		gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
-		gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
+		//gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
+		//gf2d_draw_line( origin, b, vector4d( 255, 255, 0, 255 ) );
 	}
 	else
 	{
 		line.b = a;
-		gf2d_draw_circle( a, 6, vector4d( 255, 0, 0, 255 ) );
-		gf2d_draw_line( origin, a, vector4d( 255, 255, 0, 255 ) );
+		//gf2d_draw_circle( a, 6, vector4d( 255, 0, 0, 255 ) );
+		//gf2d_draw_line( origin, a, vector4d( 255, 255, 0, 255 ) );
 	}
 
 	EntityManager *entity_manager = entity_manager_get();
+	Uint32 ent_id;
+	Vector2D rtrn_hit, tmp;
+	float dist;
+	float old_dist = FLT_MAX;
+	Uint8 collision = false;
 
 	int i;
 	for (i = 0; i < entity_manager->entity_count; i++)
 	{
-		if (!entity_manager->entity_list[i]._inuse)// not used yet
-		{
-			continue;// skip this iteration of the loop
-		}
+		if (!entity_manager->entity_list[i]._inuse) continue;
+		if (entity_manager->entity_list[i]._id == id_mask) continue;
 
 		Entity *ent = &entity_manager->entity_list[i];
 
@@ -478,15 +498,30 @@ void raycast( Vector2D origin, Vector2D direction, float max_distance, Entity *h
 		rect.w = ent->bounds.w;
 		rect.h = ent->bounds.h;
 
-
-
-		if (collision_line_rect_test( rect, line, hit_point ))
+		if (collision_line_rect_test( rect, line, &rtrn_hit ))
 		{
+			vector2d_sub( tmp, origin, rtrn_hit );
+			dist = vector2d_magnitude_squared( tmp );
+
+			if (dist < old_dist)
+			{
+				hit_point->x = rtrn_hit.x;
+				hit_point->y = rtrn_hit.y;
+
+				ent_id = ent->_id;
+
+				collision = true;
+				old_dist = dist;
+			}
 			//slog( "Top cpy: (%f, %f)", hit_point->x, hit_point->y );
-
 		}
-
-
-		//gf2d_draw_circle( vector2d(hit_point->x, hit_point->y), 16, vector4d( 255, 0, 0, 255 ) );
 	}
+
+	if (collision)
+	{
+		hit_entity = &entity_manager->entity_list[ent_id - 1];
+		return true;
+	}
+
+	return false;
 }
