@@ -50,7 +50,7 @@ int main( int argc, char *argv[] )
         0 );
     gf2d_graphics_set_frame_delay( 0 ); // Changed from 16
     gf2d_sprite_init( 128 );
-    SDL_ShowCursor( SDL_ENABLE );
+    SDL_ShowCursor( SDL_DISABLE );
 
     collision_system_init( vector2d( 32, 20 ) );
     entity_manager_init( 128 );
@@ -70,7 +70,7 @@ int main( int argc, char *argv[] )
     Entity *player = player_new();
     player->position = vector2d( 600, 350 );
 
-    for (int i = 0; i < 4; i++)
+    for (int i = 0; i < 64; i++)
     {
         Entity *q3;
         q3 = ball_new();
@@ -81,7 +81,7 @@ int main( int argc, char *argv[] )
         q3->bounds.y = q3->sprite->frame_h;
 
         q3->position.x = rand()%1050;
-        q3->position.y = 320;// rand() % 550;
+        q3->position.y = rand()%550;
     }
 
     SDL_Color color_white = { 255, 255, 255 };
