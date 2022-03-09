@@ -177,6 +177,12 @@ void entity_update( Entity *self )
 		collision_cell_remove_entity( self->cell, self );
 		collision_cell_add_entity( cell, self );
 	}
+
+	if ( self->health <= 0 )
+	{
+		die ( self );
+	}
+
 	if (self->update)self->update( self );
 }
 
@@ -231,4 +237,21 @@ Entity* entity_manager_get_entity_in_range( Vector2D position, float range )
 EntityManager *entity_manager_get()
 {
 	return &entity_manager;
+}
+
+void set_health ( Entity* ent, float damage )
+{
+	ent->health -= damage;
+	slog ( "Health: %f", ent->health );
+}
+void damage ( Entity* self, float damage, Entity* inflictor )
+{
+	self->health -= damage;
+	slog ( "Entity: %i damaged by: %i", self->_id, inflictor->_id );
+}
+
+void die ( Entity* self )
+{
+	collision_cell_remove_entity ( self->cell, self );
+	entity_free ( self );
 }

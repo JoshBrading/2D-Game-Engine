@@ -12,8 +12,14 @@ typedef struct CollisionCell_S
 	Vector2D			bBox;
 	Vector2D			cell_position;	/**<Cell position*/
 	Uint32				entity_index_list[128];	/**<List of all entities in cell*/
-	struct Entity_S		**entity_list;
+	struct Entity_S** entity_list;
 }CollisionCell;
+
+typedef struct
+{
+	Vector2D position;
+	struct Entity_S* entity;
+}HitObj;
 
 typedef struct
 {
@@ -33,30 +39,30 @@ typedef struct
  * @brief initialize internal collision system
  * @param number of horizontal and vertical cells
  */
-void collision_system_init( Vector2D cell_xy );
-void collision_system_generate_cells( Vector2D cell_xy );
-void collision_system_check_neighbor_cells_for_collision( CollisionCell *cell, struct Entity_S *entity );
-CollisionCell *collision_system_get_cell_by_index( Uint32 index );
+void collision_system_init ( Vector2D cell_xy );
+void collision_system_generate_cells ( Vector2D cell_xy );
+void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, struct Entity_S* entity );
+CollisionCell* collision_system_get_cell_by_index ( Uint32 index );
 
-void collision_system_draw_debug();
-void collision_system_clear();
+void collision_system_draw_debug ();
+void collision_system_clear ();
 /**
  * @brief initialize internal entity management system
  * @param max_entities how many concurrent entities to support
  */
 CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D position, float distance );
 
-void collision_cell_add_entity ( CollisionCell *cell, struct Entity_S* entity );
+void collision_cell_add_entity ( CollisionCell* cell, struct Entity_S* entity );
 
-void collision_cell_remove_entity( CollisionCell *cell, struct Entity_S *entity );
+void collision_cell_remove_entity ( CollisionCell* cell, struct Entity_S* entity );
 
-void collision_system_update_all();
+void collision_system_update_all ();
 
-int collision_rect_test( Rect A, Rect B );
+int collision_rect_test ( Rect A, Rect B );
 
-int collision_line_line_test( Line A, Line B, Vector2D *hit_point );
+int collision_line_line_test ( Line A, Line B, Vector2D* hit_point );
 
-int collision_line_rect_test( Rect A, Line B, Vector2D *hit_point );
+int collision_line_rect_test ( Rect A, Line B, Vector2D* hit_point );
 
-void raycast( Vector2D origin, Vector2D direction, float max_distance, struct Entity_S *hit_entity, Vector2D *hit_point );
+HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32 id_mask );
 #endif

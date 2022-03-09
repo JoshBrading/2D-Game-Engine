@@ -8,4 +8,6 @@
  */
 Entity *player_new( );
 
+void shoot ( Entity* self );
+
 #endif

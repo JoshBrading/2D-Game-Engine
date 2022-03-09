@@ -37,7 +37,7 @@ typedef struct Entity_S
 	void               (*updateFixed)(struct Entity_S *self);	/* <pointer to the update fixed function */
 
 	void               (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor);	/* <pointer to the damage function */
-	void               (*onDeath)(struct Entity_S *self);											/* <pointer to a funciton to call when the entity dies */
+	void               (*onDeath)(struct Entity_S *self);											/* <pointer to a funciton to call when the entity dies */	
 
 }Entity;
 
@@ -117,4 +117,8 @@ void entity_manager_update_all();
 void entity_manager_update_fixed_all();
 
 EntityManager *entity_manager_get();
+
+void set_health ( Entity* ent, float damage );
+
+void die ( Entity* self );
 #endif
