@@ -126,6 +126,6 @@ void shoot ( Entity* self )
 		particle->offset.y = 10;
 		particle->frame = 1;
 		//hit.entity->damage ( hit.entity, 1.0f, self );
-		set_health ( hit.entity, 1 );
+		set_health ( hit.entity, 1, self);
 	}
 }

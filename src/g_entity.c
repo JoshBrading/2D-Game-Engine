@@ -239,7 +239,7 @@ EntityManager *entity_manager_get()
 	return &entity_manager;
 }
 
-void set_health ( Entity* ent, float damage )
+void set_health ( Entity* ent, float damage, Entity* inflictor )
 {
 	ent->health -= damage;
 	slog ( "Health: %f", ent->health );

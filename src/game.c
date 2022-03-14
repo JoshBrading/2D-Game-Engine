@@ -12,6 +12,8 @@
 
 #include "g_player.h"
 
+#include "../include/g_weapon.h"
+
 
 Uint8 g_debug;
 Uint32 g_screen_width;
@@ -56,6 +58,7 @@ int main ( int argc, char* argv[] )
     collision_system_init ( vector2d ( 32, 20 ) );
     entity_manager_init ( 128 );
     particle_manager_init ( 1024 );
+    weapon_manager_init ( 128 );
 
     /*demo setup*/
     sprite = gf2d_sprite_load_image ( "images/backgrounds/bg_flat.png" );

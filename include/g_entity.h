@@ -118,7 +118,7 @@ void entity_manager_update_fixed_all();
 
 EntityManager *entity_manager_get();
 
-void set_health ( Entity* ent, float damage );
+void set_health( Entity* self, float damage, Entity* inflictor );
 
 void die ( Entity* self );
 #endif
