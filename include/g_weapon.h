@@ -49,7 +49,9 @@ Weapon* weapon_new ();
 
 void weapon_manager_init ( Uint32 maxWeapons );
 
-void weapon_manager_draw_all ();
+void weapon_manager_close();
+
+void weapon_manager_draw_all();
 
 void weapon_draw ();
 
@@ -61,6 +63,9 @@ void weapon_update_fixed ();
 
 void weapon_manager_think_all ();
 void weapon_manager_think_fixed_all ();
+
+void weapon_manager_update_all ();
+void weapon_manager_update_fixed_all ();
 
 void weapon_free ();
 

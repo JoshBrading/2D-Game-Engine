@@ -3,17 +3,21 @@
 #include "gf2d_graphics.h"
 #include "gf2d_sprite.h"
 #include "simple_logger.h"
+#include "simple_json.h"
 #include "g_globals.h"
 
+#include "g_world.h"
 #include "g_entity.h"
+#include "g_static_entity.h"
 #include "g_particle.h"
 #include "g_collision.h"
 #include "g_test_bounce_ball.h"
 
 #include "g_player.h"
 
-#include "../include/g_weapon.h"
+//#include "../include/g_weapon.h"
 
+#include "g_weapon.h"
 
 Uint8 g_debug;
 Uint32 g_screen_width;
@@ -57,6 +61,7 @@ int main ( int argc, char* argv[] )
 
     collision_system_init ( vector2d ( 32, 20 ) );
     entity_manager_init ( 128 );
+    static_entity_manager_init( 128 );
     particle_manager_init ( 1024 );
     weapon_manager_init ( 128 );
 
@@ -105,6 +110,10 @@ int main ( int argc, char* argv[] )
         exit ( EXIT_FAILURE );
     }
 
+
+    world_load( "config/asset_list.json" );
+
+
     Uint32 time = 0;
     Uint32 time2 = 0;
     char text[32];
@@ -126,10 +135,15 @@ int main ( int argc, char* argv[] )
 
             //q->position = vector2d( (float)mx, (float)my );
 
+        static_entity_draw_all();
 
         entity_manager_draw_all ();
         entity_manager_update_all ();
         entity_manager_think_all ();
+
+        weapon_manager_draw_all();
+        weapon_manager_update_all();
+        weapon_manager_think_all();
 
         particle_manager_draw_all ();
         particle_manager_update_all ();
@@ -153,6 +167,7 @@ int main ( int argc, char* argv[] )
         if ( g_debug )
         {
             collision_system_draw_debug ();
+            static_entity_manager_draw_debug();
             entity_manager_draw_debug ();
         }
 

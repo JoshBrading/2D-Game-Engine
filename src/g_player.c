@@ -1,15 +1,16 @@
 #include "simple_logger.h"
 #include "gf2d_sprite.h"
 #include "gf2d_draw.h"
-#include "g_func.h"
 #include "g_player.h"
 #include "g_particle.h"
+//#include "g_func.h"
 
 void think_fixed ( Entity* self );
 void think ( Entity* self );
 Vector2D target;
 Uint8 leftMouseButton = 0;
 
+Vector2D look_at_angle_slope( Vector2D a, Vector2D b );
 Entity* player_new ()
 {
 	Entity* ent = entity_new ();
@@ -81,8 +82,6 @@ void think ( Entity* self )
 	//self->position.x = (float)mx;
 	//self->position.y = (float)my;
 
-
-
 }
 
 int fireRate = 75;  // time * 10ms between shots
@@ -128,4 +127,9 @@ void shoot ( Entity* self )
 		//hit.entity->damage ( hit.entity, 1.0f, self );
 		set_health ( hit.entity, 1, self);
 	}
+}
+
+Vector2D look_at_angle_slope( Vector2D a, Vector2D b )
+{
+	return vector2d( (b.y - a.y), (b.x - a.x) );
 }

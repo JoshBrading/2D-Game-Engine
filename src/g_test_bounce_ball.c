@@ -20,14 +20,14 @@ Entity* ball_new ()
 	return ent;
 }
 
-int ballDir = 0;
-int ballDirY = 0;
+int ballDir = 2;
+int ballDirY = 1;
 void ball_think_fixed ( Entity* self )
 {
 
 	//self->position = lerpVector2D( self->position, vector2d(256, 256), 0.1 );
 	//( "Test: %f", self->health );
-	int speed = 0; // self->damage;
+	int speed = 2; // self->damage;
 	if ( self->position.x > 1100 ) self->speed.x = -1;
 	if ( self->position.x < 32 ) self->speed.x = 1;
 	if ( self->position.y > 600 ) self->speed.y = -1;

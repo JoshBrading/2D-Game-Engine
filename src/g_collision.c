@@ -30,7 +30,7 @@ void collision_system_init ( Vector2D cell_xy )
 		return;
 	}
 	collision_system.cell_count = maxCells;
-	//atexit( entity_manager_close );
+	atexit( collision_system_close );
 	slog ( "CollisionSystem: Initialized" );
 	collision_system_generate_cells ( cell_xy );
 }
@@ -54,19 +54,25 @@ void collision_system_draw_debug ()
 		}
 	}
 }
-void collision_system_clear ()
+void collision_system_close()
 {
-	for ( int i = 0; i < collision_system.cell_count; i++ )
+	int i;
+	for (i = 0; i < collision_system.cell_count; i++)
 	{
-		if ( collision_system.cell_list[i]._inuse )
-		{
-			if ( collision_system.cell_list[i].entity_count > 0 )
-			{
-				collision_system.cell_list[i].entity_count = 0;
-				collision_system.cell_list[i].entity_index_list[0] = 0;
-			}
-		}
+		collision_cell_free( &collision_system.cell_list[i] );
 	}
+	//free( collision_system.cell_list ); // free( cell_list ) crashes...
+	slog( "CollisionSystem: Closed" );
+}
+
+void collision_cell_free( CollisionCell *self )
+{
+	if (!self)
+	{
+		slog( "CollisionCellFree: Cell does not exist" );
+		return;
+	}
+	memset( self, 0, sizeof( self ) );
 }
 
 void collision_system_generate_cells ( Vector2D cell_xy )

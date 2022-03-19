@@ -35,6 +35,14 @@ typedef struct
 	Vector2D b;
 }Line;
 
+typedef struct
+{
+	Vector2D vert1;
+	Vector2D vert2;
+	Vector2D vert3;
+	Vector2D vert4;
+}Polygon;
+
 /**
  * @brief initialize internal collision system
  * @param number of horizontal and vertical cells
@@ -45,11 +53,9 @@ void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, 
 CollisionCell* collision_system_get_cell_by_index ( Uint32 index );
 
 void collision_system_draw_debug ();
-void collision_system_clear ();
-/**
- * @brief initialize internal entity management system
- * @param max_entities how many concurrent entities to support
- */
+void collision_system_close ();
+void collision_cell_free( CollisionCell *self );
+
 CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D position, float distance );
 
 void collision_cell_add_entity ( CollisionCell* cell, struct Entity_S* entity );

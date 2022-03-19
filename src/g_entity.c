@@ -43,7 +43,9 @@ void entity_manager_draw_all()
 		}
 	}
 
-}void entity_manager_draw_debug()
+}
+
+void entity_manager_draw_debug()
 {
 	for (int i = 0; i < entity_manager.entity_count; i++)
 	{
@@ -82,7 +84,7 @@ Entity *entity_new()
 			entity_manager.entity_list[i].scale.y = 1;
 			entity_manager.entity_list[i].offset.x = 0;
 			entity_manager.entity_list[i].offset.y = 0;
-			entity_manager.entity_list[i]._id = i + 1; // FIXME
+			entity_manager.entity_list[i]._id = i; //+ 1; // FIXME
 
 			return (&entity_manager.entity_list[i]);
 		}
