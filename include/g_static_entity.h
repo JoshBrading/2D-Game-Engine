@@ -12,7 +12,7 @@ typedef struct StaticEntity_S
 
 	char					*collision_type;
 	Rect					bounds;
-	Polygon					poly_bounds;
+	Quad					quad_bounds;
 	Vector2D				offset;		/**<Offset to the true center of the static entity*/
 	Vector2D				position;	/**<where the static entity is in the world*/
 	Vector3D				rotation;	/**<Rotation of the static entity*/
@@ -61,6 +61,8 @@ void static_entity_draw( StaticEntity *self );
 void static_entity_draw_all();
 
 void static_entity_manager_draw_debug();
+
+StaticEntityManager *static_entity_manager_get();
 
 //StaticEntity* static_entity_get_by_tag( char* tag );
 #endif // !__STATIC_ENTITY_H__

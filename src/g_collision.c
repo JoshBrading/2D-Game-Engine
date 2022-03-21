@@ -3,6 +3,7 @@
 #include <math.h>
 #include <float.h>
 #include "g_entity.h"
+#include "g_static_entity.h"
 #include "g_collision.h"
 #include "simple_logger.h"
 #include "gf2d_graphics.h"
@@ -133,7 +134,15 @@ void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, 
 					if ( !testCell.entity_list[i] ) continue;
 					if ( !testCell.entity_list[i]->_inuse ) continue;
 					if ( entity->_id == testCell.entity_list[i]->_id ) continue;
-					collision_rect_test ( testCell.entity_list[i]->bounds, entity->bounds );
+					if ( !entity->collision_enabled ) continue;
+
+					CollisionInfo info;
+					info.side = COL_NULL;
+					if (collision_rect_test( testCell.entity_list[i]->bounds, entity->bounds, &info ))
+					{
+						entity_on_collision( entity, info );
+						//entity_on_collision( testCell.entity_list[i], info );
+					}
 				}
 			}
 
@@ -241,54 +250,94 @@ void collision_cell_update ( CollisionCell* self )
 		{
 			Entity* first = self->entity_list[i];
 			if ( !first ) continue;
-			for ( int h = 0; h < self->entity_count; h++ )
+			if (!first->collision_enabled) continue;
+			//for ( int h = 0; h < self->entity_count; h++ )
+			//{
+			//	if ( h == i ) continue;
+			//	Entity* second = self->entity_list[h];
+			//	if ( !second ) continue;
+			//
+			//	CollisionInfo info;
+			//	info.side = COL_NULL;
+			//	if (collision_rect_test( first->bounds, second->bounds, &info ))
+			//	{
+			//		entity_on_collision(first, info);
+			//	//	entity_on_collision(second, info);
+			//	}
+			//}
+			//
+			CollisionInfo info;
+			info.side = COL_NULL;
+
+			StaticEntityManager *static_entity_manager = static_entity_manager_get();
+			Uint32 ent_id;
+			Vector2D rtrn_hit, tmp;
+			float dist;
+			float old_dist = FLT_MAX;
+			Uint8 collision = false;
+
+			int i;
+			for (i = 0; i < static_entity_manager->static_entity_count; i++)
 			{
-				if ( h == i ) continue;
-				Entity* second = self->entity_list[h];
-				if ( !second ) continue;
-				collision_rect_test ( first->bounds, second->bounds );
+				if (!static_entity_manager->static_entity_list[i]._inuse) continue;
+
+				StaticEntity *sEnt = &static_entity_manager->static_entity_list[i];
+
+				if (collision_rect_test( first->bounds, sEnt->bounds, &info ))
+				{
+					entity_on_collision( first, info );
+				}
+
 			}
 			collision_system_check_neighbor_cells_for_collision ( self, first );
-
 		}
 	}
 }
 
-int collision_rect_test ( Rect A, Rect B )
+int collision_rect_test ( Rect A, Rect B, CollisionInfo *info_out )
 {
 	if ( A.x < B.x + B.w &&
 		A.x + A.w > B.x &&
 		A.y < B.y + B.h &&
 		A.h + A.y > B.y )
 	{
-		SDL_Rect rectToDraw;
-		if ( A.x <= B.x )
+		SDL_Rect collisionRect;
+		CollisionInfo leftRight, topBottom;
+		if (A.x <= B.x)
 		{
-			rectToDraw.x = B.x;
-			rectToDraw.w = (A.x + A.w) - B.x;
+			collisionRect.x = B.x;
+			collisionRect.w = (A.x + A.w) - B.x;
+			leftRight.side = COL_LEFT;
 		}
-		if ( A.x >= B.x )
+		else
 		{
-			rectToDraw.x = A.x;
-			rectToDraw.w = (B.x + B.w) - A.x;
+			collisionRect.x = A.x;
+			collisionRect.w = (B.x + B.w) - A.x;
+			leftRight.side = COL_RIGHT;
 		}
-		if ( A.y <= B.y )
+		if (A.y <= B.y)
 		{
-			rectToDraw.y = B.y;
-			rectToDraw.h = (A.y + A.h) - B.y;
+			collisionRect.y = B.y;
+			collisionRect.h = (A.y + A.h) - B.y;
+			topBottom.side = COL_TOP;
 		}
-		if ( A.y >= B.y )
+		else
 		{
-			rectToDraw.y = A.y;
-			rectToDraw.h = (B.y + B.h) - A.y;
+			collisionRect.y = A.y;
+			collisionRect.h = (B.y + B.h) - A.y;
+			topBottom.side = COL_BOTTOM;
 		}
-		//rectToDraw.w = A.w + B.w;
-		//rectToDraw.h = A.h + B.h;
 
-		if ( g_debug ) gf2d_draw_fill_rect ( rectToDraw, vector4d ( 255, 0, 0, 100 ) );
 
-		return 0;
+		if (collisionRect.w < collisionRect.h) 
+			info_out->side = leftRight.side;
+		else
+			info_out->side = topBottom.side;
+		if ( g_debug ) gf2d_draw_fill_rect ( collisionRect, vector4d ( 255, 0, 0, 100 ) );
+
+		return 1;
 	}
+	return 0;
 }
 
 int collision_line_rect_test ( Rect A, Line B, Vector2D* hit_point )
@@ -522,17 +571,20 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 	}
 
 	EntityManager* entity_manager = entity_manager_get ();
-	Uint32 ent_id;
+	StaticEntityManager *static_entity_manager = static_entity_manager_get();
+
+	Uint32 ent_id = -1;
+	Uint32 sEnt_id = -1;
 	Vector2D rtrn_hit, tmp;
-	float dist;
+	float dist, ent_dist, sEnt_dist;
 	float old_dist = FLT_MAX;
 	Uint8 collision = false;
 
-	int i;
-	for ( i = 0; i < entity_manager->entity_count; i++ )
+	for ( int i = 0; i < entity_manager->entity_count; i++ )
 	{
 		if ( !entity_manager->entity_list[i]._inuse ) continue;
 		if ( entity_manager->entity_list[i]._id == id_mask ) continue;
+		if (!entity_manager->entity_list[i].collision_enabled) continue;
 
 		Entity* ent = &entity_manager->entity_list[i];
 
@@ -554,6 +606,37 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 
 				ent_id = ent->_id;
 				collision = true;
+				old_dist = dist;
+			}
+		}
+	}
+
+	for (int i = 0; i < static_entity_manager->static_entity_count; i++)
+	{
+		if (!static_entity_manager->static_entity_list[i]._inuse) continue;
+
+		StaticEntity *sEnt = &static_entity_manager->static_entity_list[i];
+
+		rect.x = sEnt->bounds.x;
+		rect.y = sEnt->bounds.y;
+		rect.w = sEnt->bounds.w;
+		rect.h = sEnt->bounds.h;
+
+		if (collision_line_rect_test( rect, line, &rtrn_hit ))
+		{
+			vector2d_sub( tmp, origin, rtrn_hit );
+			dist = vector2d_magnitude_squared( tmp );
+
+			gf2d_draw_circle( rtrn_hit, 8, vector4d( 255, 0, 255, 255 ) );
+			if (dist < old_dist)
+			{
+				hit_point.x = rtrn_hit.x;
+				hit_point.y = rtrn_hit.y;
+
+				sEnt_id = sEnt->_id;
+				ent_id = -1; // If this is closer, we know the entity is not visible
+				collision = true;
+				old_dist = dist;
 			}
 		}
 	}
@@ -561,7 +644,8 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 	{
 		hit.position.x = hit_point.x;
 		hit.position.y = hit_point.y;
-		hit.entity = &entity_manager->entity_list[ent_id - 1];
+		if (ent_id != -1) hit.entity = &entity_manager->entity_list[ent_id - 1];
+		if ( sEnt_id != -1) hit.static_entity = &static_entity_manager->static_entity_list[sEnt_id - 1];
 
 	}
 

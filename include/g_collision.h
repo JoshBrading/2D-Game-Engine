@@ -19,7 +19,24 @@ typedef struct
 {
 	Vector2D position;
 	struct Entity_S* entity;
+	struct StaticEntity_S *static_entity;
 }HitObj;
+
+typedef enum
+{
+	COL_TOP,
+	COL_BOTTOM,
+	COL_LEFT,
+	COL_RIGHT,
+	COL_NULL
+}CollisionSide;
+
+
+typedef struct
+{
+	CollisionSide side;
+}CollisionInfo;
+
 
 typedef struct
 {
@@ -41,7 +58,7 @@ typedef struct
 	Vector2D vert2;
 	Vector2D vert3;
 	Vector2D vert4;
-}Polygon;
+}Quad;
 
 /**
  * @brief initialize internal collision system

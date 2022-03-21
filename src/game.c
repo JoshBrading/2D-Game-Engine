@@ -22,6 +22,7 @@
 Uint8 g_debug;
 Uint32 g_screen_width;
 Uint32 g_screen_height;
+Uint32 g_time;
 
 int main ( int argc, char* argv[] )
 {
@@ -34,6 +35,7 @@ int main ( int argc, char* argv[] )
 
     g_screen_width = 1200;
     g_screen_height = 720;
+    g_time = 0;
 
     int done = 0;
     const Uint8* keys;
@@ -59,7 +61,7 @@ int main ( int argc, char* argv[] )
     gf2d_sprite_init ( 128 );
     SDL_ShowCursor ( SDL_ENABLE );
 
-    collision_system_init ( vector2d ( 32, 20 ) );
+    collision_system_init ( vector2d ( 32, 20 ) ); // DO NOT TOUCH
     entity_manager_init ( 128 );
     static_entity_manager_init( 128 );
     particle_manager_init ( 1024 );
@@ -123,6 +125,7 @@ int main ( int argc, char* argv[] )
         SDL_PumpEvents ();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState ( NULL ); // get the keyboard state for this frame
         /*update things here*/
+        g_time = SDL_GetTicks();
         SDL_GetMouseState ( &mx, &my );
         mf += 0.1;
         if ( mf >= 16.0 )mf = 0;
@@ -149,20 +152,20 @@ int main ( int argc, char* argv[] )
         particle_manager_update_all ();
 
         collision_system_update_all ();
-        if ( SDL_GetTicks () > time + 20 ) // Run every 10ms
+        if ( g_time > time + 20 ) // Run every 10ms
         {
             //collision_system_clear();
             entity_manager_update_fixed_all ();
             entity_manager_think_fixed_all ();
             particle_manager_update_fixed_all ();
 
-            time = SDL_GetTicks ();
+            time = g_time;
         }
 
-        if ( SDL_GetTicks () > time2 + 100 )
+        if ( g_time > time2 + 100 )
         {
             snprintf ( text, sizeof ( text ), "FPS: %f", gf2d_graphics_get_frames_per_second () );
-            time2 = SDL_GetTicks ();
+            time2 = g_time;
         }
         if ( g_debug )
         {

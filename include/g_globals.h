@@ -4,4 +4,5 @@
 extern Uint8 g_debug;
 extern Uint32 g_screen_width;
 extern Uint32 g_screen_height;
+extern Uint32 g_time;
 #endif

@@ -103,30 +103,33 @@ void shoot ( Entity* self )
 {
 	HitObj hit;
 	hit = raycast ( self->position, look_at_angle_slope ( self->position, target ), 1024, self->_id );
+	
+	Sprite *vfx;
+	vfx = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );
+	vfx->frame_count = 32;
+
+	Particle *particle = particle_new();
+	particle->position = hit.position;
+	particle->scale.x = 0.1;
+	particle->scale.y = 0.1;
+	particle->sprite = vfx;
+	particle->life_time = 32;
+	particle->timescale = 0.5;
+	particle->offset.x = 10;
+	particle->offset.y = 10;
+	particle->frame = 1;
+	
 	if ( hit.entity == NULL ) return;
 	if ( hit.entity->_inuse )
 	{
 		//slog ( "Hit entity with ID: %i", hit.entity->_id );
 		//gf2d_draw_line( self->position, hit.position, vector4d( 255, 255, 0, 255 ) );
-
-		Sprite* vfx;
-		vfx = gf2d_sprite_load_all ( "images/Bullet_Impact.png", 256, 256, 32 );
-		vfx->frame_count = 32;
-		//gf2d_sprite_draw ( test, hit.position, NULL, NULL, NULL, NULL, NULL, 0 );
-
-		Particle* particle = particle_new ();
-		particle->position = hit.position;
-		particle->scale.x = 0.1;
-		particle->scale.y = 0.1;
-		particle->sprite = vfx;
-		particle->life_time = 32;
-		particle->timescale = 0.5;
-		particle->offset.x = 10;
-		particle->offset.y = 10;
-		particle->frame = 1;
 		//hit.entity->damage ( hit.entity, 1.0f, self );
 		set_health ( hit.entity, 1, self);
 	}
+
+
+
 }
 
 Vector2D look_at_angle_slope( Vector2D a, Vector2D b )

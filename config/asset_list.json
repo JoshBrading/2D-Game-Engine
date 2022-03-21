@@ -1,6 +1,15 @@
 {
     "asset_list":
     [
+          {
+            "name":"Floor 1200x720",
+            "type":"background",
+            "isStatic": true,
+            "sprite":"images/backgrounds/floor.png",
+            "collisionType":"NULL",
+            "height":null,
+            "width":null
+        },
         {
             "name":"Wall 25x100",
             "type":"static",
@@ -8,26 +17,200 @@
             "sprite":"images/scenery/wall_25x100.png",
             "collisionType":"box",
             "height":null,
-            "width":null
+            "width":null,
+            "position_x":104,
+            "position_y":0
         },
         {
-            "name":"Wall 25x100 (Destructible)",
-            "type":"wall",
-            "isStatic": false,
-            "health":100,
-            "sprite":"images/scenery/destructible_wall_25x100.png",
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
             "collisionType":"box",
             "height":null,
-            "width":null
+            "width":null,
+            "position_x":104,
+            "position_y":100
         },
         {
-            "name":"Wall 25x100 (45d)",
-            "type":"wall",
+            "name":"Wall 25x100",
+            "type":"static",
             "isStatic": true,
-            "sprite":"images/scenery/45d_wall_25x100.png",
-            "collisionType":"polygon",
-            "vert1":null,
-            "vert2":null
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":104,
+            "position_y":200
+        },
+        {
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":104,
+            "position_y":300
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":229,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":329,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":429,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":529,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":604,
+            "position_y":0
+        },
+        {
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":604,
+            "position_y":200
+        },
+        {
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":604,
+            "position_y":300
+        },
+        {
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":604,
+            "position_y":400
+        },
+        {
+            "name":"Wall 25x100",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":604,
+            "position_y":600
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":800,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":900,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":1000,
+            "position_y":375
+        },
+        {
+            "name":"Wall 25x100 (90d)",
+            "type":"static",
+            "isStatic": true,
+            "sprite":"images/scenery/90d_wall_25x100.png",
+            "collisionType":"box",
+            "height":null,
+            "width":null,
+            "position_x":1100,
+            "position_y":375
+        },
+        {
+            "name":"Door 10x50 (Interactable)",
+            "type":"wall",
+            "isStatic": false,
+            "sprite":"images/scenery/door_use.png",
+            "collisionType":"box",
+            "height":50,
+            "width":10,
+            "speed": 50,
+            "range":25,
+            "health": 10,
+            "frame_h": 50,
+            "frame_w": 60,
+            "frames_per_line": 7
         }
     ]
 }

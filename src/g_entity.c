@@ -84,7 +84,9 @@ Entity *entity_new()
 			entity_manager.entity_list[i].scale.y = 1;
 			entity_manager.entity_list[i].offset.x = 0;
 			entity_manager.entity_list[i].offset.y = 0;
-			entity_manager.entity_list[i]._id = i; //+ 1; // FIXME
+			entity_manager.entity_list[i]._id = i + 1; // FIXME
+			entity_manager.entity_list[i].col_timer = 0;
+			entity_manager.entity_list[i].collision_enabled = true;
 
 			return (&entity_manager.entity_list[i]);
 		}
@@ -180,11 +182,10 @@ void entity_update( Entity *self )
 		collision_cell_add_entity( cell, self );
 	}
 
-	if ( self->health <= 0 )
+	if (self->health <= 0)
 	{
-		die ( self );
+		entity_die( self );
 	}
-
 	if (self->update)self->update( self );
 }
 
@@ -252,8 +253,14 @@ void damage ( Entity* self, float damage, Entity* inflictor )
 	slog ( "Entity: %i damaged by: %i", self->_id, inflictor->_id );
 }
 
-void die ( Entity* self )
+void entity_die ( Entity* self )
 {
-	collision_cell_remove_entity ( self->cell, self );
-	entity_free ( self );
+	if (!self) return;
+	if (self->onDeath)self->onDeath( self );
+}
+
+void entity_on_collision( Entity* self, CollisionInfo collision )
+{
+	if (!self) return;
+	if (self->onCollision)self->onCollision( self, collision );
 }

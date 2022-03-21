@@ -4,10 +4,25 @@
 #include "gf2d_sprite.h"
 #include "g_collision.h"
 
+typedef enum
+{
+	ENT_IDLE,
+	ENT_ATTACK,
+	ENT_HEAL,
+	DOOR_OPENED,
+	DOOR_CLOSED,
+	DOOR_DEAD,
+	DOOR_SHOT,
+	DOOR_HAND,
+	DOOR_BLOWN
+
+}EntityState;
 
 typedef struct Entity_S
 {
 	Uint8					_inuse;		/**<Flag to check if entity is being used*/
+	Uint8					visibility;	/**<Current visibility of entity*/
+	Uint8					collision_enabled;
 
 	Uint32					_id;		/**<ID of an entity, assume ID cannot be 0*/
 	Sprite					*sprite;	/**<a pointer to the sprite that is used by this entity*/
@@ -21,11 +36,10 @@ typedef struct Entity_S
 	Vector2D				scale;		/**<Vector2D Scale of entity*/
 	Vector2D				speed;
 
-	Uint8					visibility;	/**<Current visibility of entity*/
 	float					health;		/**<Current health of entity*/
 	//Weapon					weapon;		/**<Currently held weapon by the entity*/
 
-	Uint32					state;		/**<Current state of entity, waiting, attacking*/
+	EntityState					state;		/**<Current state of entity, waiting, attacking*/
 	char					*tag;		/**<Tag for naming the entity*/
 	Uint8					team;		/**<Team the entity is on*/
 	struct CollisionCell_S*	cell;		/**<Current cell position of the entity, used for collision detection*/
@@ -39,6 +53,15 @@ typedef struct Entity_S
 	void               (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor);	/* <pointer to the damage function */
 	void               (*onDeath)(struct Entity_S *self);											/* <pointer to a funciton to call when the entity dies */	
 
+
+	// Collision specific variables
+	void				(*onCollision)(struct Entity_S *self, CollisionInfo collision);	/* <pointer to a funciton to call when the entity collides */	
+
+	Uint32				col_timer;	/* <Time of last call, use however needed */
+
+	// Doors!
+	float				interact_radius;
+	Uint32				door_timer;
 }Entity;
 
 
@@ -120,5 +143,13 @@ EntityManager *entity_manager_get();
 
 void set_health( Entity* self, float damage, Entity* inflictor );
 
-void die ( Entity* self );
+void entity_die ( Entity* self );
+
+/**
+* @brief Runs once every frame an entity is colliding
+* @param Entity with collision
+* @param Details information about the collision
+*/
+void entity_on_collision( Entity *self, CollisionInfo collision );
+
 #endif

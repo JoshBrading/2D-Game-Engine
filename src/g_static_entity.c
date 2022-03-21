@@ -96,18 +96,23 @@ void static_entity_manager_draw_debug()
             if (strcmp( static_entity_manager.static_entity_list[i].collision_type, "box" ) == 0)
             {
                 SDL_Rect rectToDraw = { static_entity_manager.static_entity_list[i].bounds.x, static_entity_manager.static_entity_list[i].bounds.y, static_entity_manager.static_entity_list[i].bounds.w, static_entity_manager.static_entity_list[i].bounds.h };
-                gf2d_draw_rect( rectToDraw, vector4d( 255, 255, 0, 255 ) );
+                gf2d_draw_rect( rectToDraw, vector4d( 128, 128, 0, 255 ) );
             }
-            else if (strcmp( static_entity_manager.static_entity_list[i].collision_type, "polygon" ) == 0)
+            else if (strcmp( static_entity_manager.static_entity_list[i].collision_type, "quad" ) == 0)
             {
-                Polygon poly = static_entity_manager.static_entity_list[i].poly_bounds;
+                Quad quad = static_entity_manager.static_entity_list[i].quad_bounds;
 
-                gf2d_draw_line( poly.vert1, poly.vert2, vector4d( 255, 255, 0, 255 ) );
-                gf2d_draw_line( poly.vert2, poly.vert3, vector4d( 255, 255, 0, 255 ) );
-                gf2d_draw_line( poly.vert3, poly.vert4, vector4d( 255, 255, 0, 255 ) );
-                gf2d_draw_line( poly.vert4, poly.vert1, vector4d( 255, 255, 0, 255 ) );
+                gf2d_draw_line( quad.vert1, quad.vert2, vector4d( 128, 128, 0, 255 ) );
+                gf2d_draw_line( quad.vert2, quad.vert3, vector4d( 128, 128, 0, 255 ) );
+                gf2d_draw_line( quad.vert3, quad.vert4, vector4d( 128, 128, 0, 255 ) );
+                gf2d_draw_line( quad.vert4, quad.vert1, vector4d( 128, 128, 0, 255 ) );
             }
 
         }
     }
+}
+
+StaticEntityManager *static_entity_manager_get()
+{
+    return &static_entity_manager;
 }
