@@ -29,17 +29,17 @@ int ballDirY = 1;
 void ball_think_fixed ( Entity* self )
 {
 
-	//self->position = lerpVector2D( self->position, vector2d(256, 256), 0.1 );
+	self->position = lerp_vector_2d( self->position, vector2d(256, 256), 0.1 );
 	//( "Test: %f", self->health );
-	int speed = 2; // self->damage;
-	if ( self->position.x > 1100 ) self->speed.x = -1;
-	if ( self->position.x < 32 ) self->speed.x = 1;
-	if ( self->position.y > 600 ) self->speed.y = -1;
-	if ( self->position.y < 32 ) self->speed.y = 1;
-	int directionX = self->speed.x;
-	int directionY = self->speed.y;
-	self->position.x += speed * directionX;
-	self->position.y += speed * directionY;
+	//int speed = 2; // self->damage;
+	//if ( self->position.x > 1100 ) self->speed.x = -1;
+	//if ( self->position.x < 32 ) self->speed.x = 1;
+	//if ( self->position.y > 600 ) self->speed.y = -1;
+	//if ( self->position.y < 32 ) self->speed.y = 1;
+	//int directionX = self->speed.x;
+	//int directionY = self->speed.y;
+	//self->position.x += speed * directionX;
+	//self->position.y += speed * directionY;
 }
 
 void die( Entity *self )

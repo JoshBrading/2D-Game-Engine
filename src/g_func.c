@@ -6,7 +6,7 @@ float lerp( float a, float b, float t )
 	return a + t * (b - a);
 }
 
-Vector2D lerpVector2D( Vector2D a, Vector2D b, float t )
+Vector2D lerp_vector_2d( Vector2D a, Vector2D b, float t )
 {
 	float x, y;
 

@@ -106,7 +106,6 @@ void door_think_fixed( Entity* self )
 	}
 	if (self->state == DOOR_DEAD || self->state == DOOR_OPENED)
 	{
-		slog( "OPEN or DEAD" );
 		self->collision_enabled = false;
 	}
 	else

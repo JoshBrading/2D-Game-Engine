@@ -3,21 +3,37 @@
 #include "gf2d_draw.h"
 #include "g_player.h"
 #include "g_particle.h"
+#include "g_globals.h"
 //#include "g_func.h"
 
 void think_fixed ( Entity* self );
 void think ( Entity* self );
+void player_collision( Entity *self, CollisionInfo info );
+void move_to_target( Entity *self, Uint32 index );
+void draw_path( Entity *self );
+
 Vector2D target;
 Uint8 leftMouseButton = 0;
+
+Vector2D mouse;
+
 
 Vector2D look_at_angle_slope( Vector2D a, Vector2D b );
 Entity* player_new ()
 {
-	Entity* ent = entity_new ();
+	Entity *ent = NULL;
+	ent = entity_new();
+
 	if ( !ent ) return NULL;
+
+	Vector2D pos = vector2d( -1, -1 );
+
+
+	ent->team = 0;
 
 	ent->think = think;
 	ent->thinkFixed = think_fixed;
+	ent->onCollision = player_collision;
 
 	ent->sprite = gf2d_sprite_load_image ( "images/player.png" );
 	ent->scale.x = 0.125;
@@ -36,6 +52,20 @@ Entity* player_new ()
 	ent->rotation.z = 0;
 
 	ent->health = 1000;
+
+	ent->path.positions[0] = pos;
+	ent->path.positions[1] = pos;
+	ent->path.positions[2] = pos;
+	ent->path.positions[3] = pos;
+
+	ent->state = ENT_WANDER;
+	ent->move_speed = 4;
+
+	ent->timers.A = g_time;
+
+	ent->path.pos_max = 4;
+	ent->path.pos_count = 0;
+	ent->path.color = vector4d( 0, 255, 0, 255 );
 
 	target = vector2d ( 0, 0 );
 
@@ -64,7 +94,7 @@ void think ( Entity* self )
 	if ( e.type == SDL_MOUSEBUTTONDOWN )
 	{
 		leftMouseButton = 1;
-		slog ( "Mouse clicked" );
+		//slog ( "Mouse clicked" );
 	}
 
 	if ( e.type == SDL_MOUSEBUTTONUP )
@@ -75,10 +105,12 @@ void think ( Entity* self )
 	Vector2D hit_point;
 	Vector2D m = look_at_angle_slope ( self->position, target );
 	Entity* ent;
-	Vector2D mouse = vector2d ( mx, my );
+	mouse = vector2d ( mx, my );
 
 	raycast ( self->position, look_at_angle_slope ( self->position, mouse ), 64, self->_id );
 	gf2d_draw_circle ( self->position, 64, vector4d ( 255, 255, 255, 100 ) );
+
+	draw_path( self );
 	//self->position.x = (float)mx;
 	//self->position.y = (float)my;
 
@@ -88,15 +120,64 @@ int fireRate = 75;  // time * 10ms between shots
 int time = 0;
 void think_fixed ( Entity* self )
 {
-	if ( time <= SDL_GetTicks () )
+	//if ( time <= SDL_GetTicks () )
+	//{
+	//	if ( leftMouseButton )
+	//	{
+	//		shoot ( self );
+	//	}
+	//	time = SDL_GetTicks () + fireRate;
+	//}
+		
+	if (leftMouseButton && self->path.pos_count != self->path.pos_max ) // why doesnt < work here?
 	{
-		if ( leftMouseButton )
+		if (self->timers.A + 500 < g_time)
 		{
-			shoot ( self );
+			slog( "Writing pos: %i", self->path.pos_count );
+			self->path.positions[self->path.pos_count] = mouse;
+			self->path.pos_count += 1;
+
+			self->timers.A = g_time;
 		}
-		time = SDL_GetTicks () + fireRate;
 	}
 
+	if (self->path.pos_count != 0 && !leftMouseButton)
+	{
+		move_to_target( self, self->path.pos_max - self->path.pos_count );
+	}
+}
+
+void move_to_target( Entity *self, Uint32 index )
+{
+	//slog( "Index: %i", index );
+
+	if (!vector2d_distance_between_less_than( self->position, self->path.positions[index], self->move_speed ))
+	{
+		Vector2D newPos;
+		vector2d_move_towards( &newPos, self->position, self->path.positions[index], self->move_speed );
+
+		CollisionInfo col = self->col_info;
+
+		if (col.time + 100 > g_time)
+		{
+			if (col.top || col.bottom)
+			{
+				newPos.y = self->position.y;
+			}
+
+			if (col.left || col.right)
+			{
+				newPos.x = self->position.x;
+			}
+		}
+
+		self->position = newPos;
+	}
+	else
+	{
+		self->path.positions[self->path.pos_max - self->path.pos_count] = vector2d( -1, -1 );
+		self->path.pos_count -= 1;
+	}
 }
 
 void shoot ( Entity* self )
@@ -132,7 +213,35 @@ void shoot ( Entity* self )
 
 }
 
-Vector2D look_at_angle_slope( Vector2D a, Vector2D b )
+void player_collision( Entity *self, CollisionInfo info )
 {
-	return vector2d( (b.y - a.y), (b.x - a.x) );
+	self->col_info = info;
+
+	// Wiggle around :)
+	if (info.side == COL_LEFT)		self->position.x += 0.01;
+	if (info.side == COL_RIGHT)		self->position.x -= 0.01;
+	if (info.side == COL_TOP)		self->position.y += 0.01;
+	if (info.side == COL_BOTTOM)	self->position.y -= 0.01;
+}
+
+void draw_path( Entity *self )
+{
+	if (!self) return;
+
+	//int i = self->path.pos_max - self->path.pos_count;
+
+	//slog( "%i", self->path.positions[i] );
+
+	//if( self->path.pos_count != 0) gf2d_draw_line( self->position, self->path.positions[i], vector4d( 0, 0, 255, 255 ) );
+
+
+	//gf2d_draw_line( self->path.positions[0], self->path.positions[1], vector4d( 0, 0, 255, 255 ) );
+	//gf2d_draw_line( self->path.positions[1], self->path.positions[2], vector4d( 0, 0, 255, 255 ) );
+	//gf2d_draw_line( self->path.positions[2], self->path.positions[3], vector4d( 0, 0, 255, 255 ) );
+
+	gf2d_draw_circle( self->path.positions[0], 4, self->path.color );
+	gf2d_draw_circle( self->path.positions[1], 4, self->path.color );
+	gf2d_draw_circle( self->path.positions[2], 4, self->path.color );
+	gf2d_draw_circle( self->path.positions[3], 4, self->path.color );
+
 }

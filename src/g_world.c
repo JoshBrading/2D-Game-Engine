@@ -112,13 +112,11 @@ void world_load( char *filename )
                 sEnt->bounds.x = sEnt->position.x;
                 sEnt->bounds.y = sEnt->position.y;
             }
-
         }
         else
         {
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 12; i++)
             {
-
 
                 Uint32 frame_h, frame_w, frames_per_line, height, width;
                 float speed, range, health;
@@ -160,12 +158,6 @@ void world_load( char *filename )
                     door->bounds.y = door->position.y;
                 }
             }
-
         }
-
-        slog( sj_get_string_value( sj_object_get_value( data, "isStatic" ) ) );
-
     }
-
-
 }

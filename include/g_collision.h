@@ -34,7 +34,12 @@ typedef enum
 
 typedef struct
 {
-	CollisionSide side;
+	CollisionSide	side;
+	Uint32			time;
+	Uint8			left;
+	Uint8			right;
+	Uint8			top;
+	Uint8			bottom;
 }CollisionInfo;
 
 

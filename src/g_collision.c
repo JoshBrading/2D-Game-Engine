@@ -134,14 +134,20 @@ void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, 
 					if ( !testCell.entity_list[i] ) continue;
 					if ( !testCell.entity_list[i]->_inuse ) continue;
 					if ( entity->_id == testCell.entity_list[i]->_id ) continue;
-					if ( !entity->collision_enabled ) continue;
+					if ( !testCell.entity_list[i]->collision_enabled) continue;
+					if (entity->team == 0 && testCell.entity_list[i]->team == 0) continue; // Friendlies do not collide with friendlies
 
 					CollisionInfo info;
 					info.side = COL_NULL;
+					info.time = g_time;
 					if (collision_rect_test( testCell.entity_list[i]->bounds, entity->bounds, &info ))
 					{
 						entity_on_collision( entity, info );
 						//entity_on_collision( testCell.entity_list[i], info );
+					}
+					else
+					{
+						entity->col_info.side = COL_NULL;
 					}
 				}
 			}
@@ -268,6 +274,7 @@ void collision_cell_update ( CollisionCell* self )
 			//
 			CollisionInfo info;
 			info.side = COL_NULL;
+			info.time = g_time;
 
 			StaticEntityManager *static_entity_manager = static_entity_manager_get();
 			Uint32 ent_id;
@@ -286,6 +293,10 @@ void collision_cell_update ( CollisionCell* self )
 				if (collision_rect_test( first->bounds, sEnt->bounds, &info ))
 				{
 					entity_on_collision( first, info );
+				}
+				else
+				{
+					first->col_info.side = COL_NULL;
 				}
 
 			}
@@ -308,31 +319,53 @@ int collision_rect_test ( Rect A, Rect B, CollisionInfo *info_out )
 			collisionRect.x = B.x;
 			collisionRect.w = (A.x + A.w) - B.x;
 			leftRight.side = COL_LEFT;
+			leftRight.left = true;
+			leftRight.right = false;
 		}
 		else
 		{
 			collisionRect.x = A.x;
 			collisionRect.w = (B.x + B.w) - A.x;
 			leftRight.side = COL_RIGHT;
+			leftRight.right = true;
+			leftRight.left = true;
 		}
 		if (A.y <= B.y)
 		{
 			collisionRect.y = B.y;
 			collisionRect.h = (A.y + A.h) - B.y;
 			topBottom.side = COL_TOP;
+			topBottom.top = true;
+			topBottom.bottom = false;
 		}
 		else
 		{
 			collisionRect.y = A.y;
 			collisionRect.h = (B.y + B.h) - A.y;
 			topBottom.side = COL_BOTTOM;
+			topBottom.bottom = true;
+			topBottom.top = true;
 		}
 
 
-		if (collisionRect.w < collisionRect.h) 
+		if (collisionRect.w < collisionRect.h)
+		{
 			info_out->side = leftRight.side;
+			info_out->left = leftRight.left;
+			info_out->right = leftRight.right;
+
+			info_out->top = false;
+			info_out->bottom = false;
+		}
 		else
+		{
 			info_out->side = topBottom.side;
+			info_out->top = topBottom.top;
+			info_out->bottom = topBottom.bottom;
+
+			info_out->left = false;
+			info_out->right = false;
+		}
 		if ( g_debug ) gf2d_draw_fill_rect ( collisionRect, vector4d ( 255, 0, 0, 100 ) );
 
 		return 1;
@@ -555,19 +588,19 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 	{
 		line.b = b;
 		//gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
-		gf2d_draw_line ( origin, b, vector4d ( 255, 255, 255, 100 ) );
+	//	gf2d_draw_line ( origin, b, vector4d ( 255, 255, 255, 100 ) );
 	}
 	else if ( direction.x > 0 && direction.y < 0 )
 	{
 		line.b = b;
 		//gf2d_draw_circle( b, 6, vector4d( 255, 0, 255, 255 ) );
-		gf2d_draw_line ( origin, b, vector4d ( 255, 255, 255, 100 ) );
+	//	gf2d_draw_line ( origin, b, vector4d ( 255, 255, 255, 100 ) );
 	}
 	else
 	{
 		line.b = a;
 		//gf2d_draw_circle( a, 6, vector4d( 255, 0, 0, 255 ) );
-		gf2d_draw_line ( origin, a, vector4d ( 255, 255, 255, 100 ) );
+	//	gf2d_draw_line ( origin, a, vector4d ( 255, 255, 255, 100 ) );
 	}
 
 	EntityManager* entity_manager = entity_manager_get ();
@@ -598,7 +631,7 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 			vector2d_sub ( tmp, origin, rtrn_hit );
 			dist = vector2d_magnitude_squared ( tmp );
 
-			gf2d_draw_circle ( rtrn_hit, 8, vector4d ( 255, 0, 255, 255 ) );
+		//	gf2d_draw_circle ( rtrn_hit, 8, vector4d ( 255, 0, 255, 255 ) );
 			if ( dist < old_dist )
 			{
 				hit_point.x = rtrn_hit.x;
@@ -627,7 +660,7 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 			vector2d_sub( tmp, origin, rtrn_hit );
 			dist = vector2d_magnitude_squared( tmp );
 
-			gf2d_draw_circle( rtrn_hit, 8, vector4d( 255, 0, 255, 255 ) );
+		//	gf2d_draw_circle( rtrn_hit, 8, vector4d( 255, 0, 255, 255 ) );
 			if (dist < old_dist)
 			{
 				hit_point.x = rtrn_hit.x;

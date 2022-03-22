@@ -17,7 +17,7 @@ float lerp( float a, float b, float t );
  * @param b second Vector2D
  * @param t time of lerp 0-1
  */
-Vector2D lerpVector2D( Vector2D a, Vector2D b, float t );
+Vector2D lerp_vector_2d( Vector2D a, Vector2D b, float t );
 
 float look_at_angle_degree( Vector2D a, Vector2D b );
 

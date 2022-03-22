@@ -3,20 +3,49 @@
 
 #include "gf2d_sprite.h"
 #include "g_collision.h"
+#include "gfc_list.h"
 
 typedef enum
 {
 	ENT_IDLE,
 	ENT_ATTACK,
 	ENT_HEAL,
+	ENT_CHASE,
+	ENT_WANDER,
+	ENT_HIDE,
 	DOOR_OPENED,
 	DOOR_CLOSED,
 	DOOR_DEAD,
 	DOOR_SHOT,
 	DOOR_HAND,
-	DOOR_BLOWN
+	DOOR_BLOWN,
+	COL_TRUE
 
 }EntityState;
+
+typedef struct
+{
+	Uint8 A;
+	Uint8 B;
+	Uint8 C;
+	Uint8 D;
+}Toggles;
+
+typedef struct
+{
+	Uint32 A;
+	Uint32 B;
+	Uint32 C;
+	Uint32 D;
+}Timers;
+
+typedef struct
+{
+	Vector2D positions[4];
+	Uint32 pos_max;
+	Uint32 pos_count;
+	Vector4D color;
+}Path;
 
 typedef struct Entity_S
 {
@@ -36,32 +65,45 @@ typedef struct Entity_S
 	Vector2D				scale;		/**<Vector2D Scale of entity*/
 	Vector2D				speed;
 
+	float					move_speed;
 	float					health;		/**<Current health of entity*/
 	//Weapon					weapon;		/**<Currently held weapon by the entity*/
+
+	Toggles					toggles;
+	Timers					timers;
 
 	EntityState					state;		/**<Current state of entity, waiting, attacking*/
 	char					*tag;		/**<Tag for naming the entity*/
 	Uint8					team;		/**<Team the entity is on*/
 	struct CollisionCell_S*	cell;		/**<Current cell position of the entity, used for collision detection*/
 
-	void               (*think)(struct Entity_S *self);			/* <pointer to the think function */
-	void               (*thinkFixed)(struct Entity_S *self);	/* <pointer to the think fixed function */
+	void				(*think)(struct Entity_S *self);			/* <pointer to the think function */
+	void				(*thinkFixed)(struct Entity_S *self);	/* <pointer to the think fixed function */
+	
+	void				(*update)(struct Entity_S *self);		/* <pointer to the update function */
+	void				(*updateFixed)(struct Entity_S *self);	/* <pointer to the update fixed function */
 
-	void               (*update)(struct Entity_S *self);		/* <pointer to the update function */
-	void               (*updateFixed)(struct Entity_S *self);	/* <pointer to the update fixed function */
-
-	void               (*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor);	/* <pointer to the damage function */
-	void               (*onDeath)(struct Entity_S *self);											/* <pointer to a funciton to call when the entity dies */	
-
+	void				(*damage)(struct Entity_S *self, float damage, struct Entity_S *inflictor);	/* <pointer to the damage function */
+	void				(*onDeath)(struct Entity_S *self);	/* <pointer to a funciton to call when the entity dies */	
+	void				(*drawDebug)(struct Entity_S *self);
 
 	// Collision specific variables
 	void				(*onCollision)(struct Entity_S *self, CollisionInfo collision);	/* <pointer to a funciton to call when the entity collides */	
-
+	CollisionInfo		col_info;
 	Uint32				col_timer;	/* <Time of last call, use however needed */
 
 	// Doors!
 	float				interact_radius;
 	Uint32				door_timer;
+
+	// AI
+	SDL_Rect			nav_zone;
+	float				attack_cooldown;
+	float				view_range;
+	float				idle_time_min;
+	float				idle_time_max;
+	Vector2D			target_position;
+	Path				path;
 }Entity;
 
 
@@ -151,5 +193,14 @@ void entity_die ( Entity* self );
 * @param Details information about the collision
 */
 void entity_on_collision( Entity *self, CollisionInfo collision );
+
+/**
+* @brief Moves the entity towards path.position[index]
+* @param Entity in use
+* @param Index of the position to move to
+* @param Radius of position
+*/
+void entity_follow_path( Entity *self, Uint32 index, float radius );
+
 
 #endif

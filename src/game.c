@@ -80,20 +80,33 @@ int main ( int argc, char* argv[] )
     //q->bounds.y = 0;
 
     Entity* player = player_new ();
-    player->position = vector2d ( 600, 350 );
+    player->team = 0;
+    player->position = vector2d ( 500, 250 );
 
     for ( int i = 0; i < 4; i++ )
     {
         Entity* q3;
-        q3 = ball_new ();
+        q3 = friendly_new ();
         q3->sprite = mouse;
         q3->bounds.w = q3->sprite->frame_w;
         q3->bounds.h = q3->sprite->frame_h;
         q3->bounds.x = q3->sprite->frame_w;
         q3->bounds.y = q3->sprite->frame_h;
 
-        q3->position.x = rand () % 1050;
-        q3->position.y = rand () % 550;
+        q3->nav_zone.x = 629;
+        q3->nav_zone.y = 0;
+        q3->nav_zone.w = 550;
+        q3->nav_zone.h = 350;
+
+        q3->position.x = 800 + 80* i;// rand() % 1050;
+        q3->position.y = 200;// rand() % 550;
+
+        q3->target_position = q3->position;
+        q3->view_range = 100;
+
+        q3->idle_time_max = 1000;
+        q3->idle_time_min = 500;
+        q3->state = ENT_WANDER;
     }
 
     SDL_Color color_white = { 255, 255, 255 };

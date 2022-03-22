@@ -87,6 +87,7 @@ Entity *entity_new()
 			entity_manager.entity_list[i]._id = i + 1; // FIXME
 			entity_manager.entity_list[i].col_timer = 0;
 			entity_manager.entity_list[i].collision_enabled = true;
+			entity_manager.entity_list[i].visibility = true;
 
 			return (&entity_manager.entity_list[i]);
 		}
@@ -99,7 +100,8 @@ void entity_draw( Entity *self )
 {
 	if (!self) return;
 	if (!self->sprite) return;
-	gf2d_sprite_draw( self->sprite, vector2d(self->position.x - self->offset.x, self->position.y - self->offset.y), &self->scale, NULL, &self->rotation, NULL, NULL, self->frame );
+	if( self->visibility ) 
+		gf2d_sprite_draw( self->sprite, vector2d(self->position.x - self->offset.x, self->position.y - self->offset.y), &self->scale, NULL, &self->rotation, NULL, NULL, self->frame );
 }
 
 Entity *entity_manager_get_by_id( Uint32 id )
@@ -187,6 +189,9 @@ void entity_update( Entity *self )
 		entity_die( self );
 	}
 	if (self->update)self->update( self );
+
+	if (g_debug && self->drawDebug) self->drawDebug( self );
+
 }
 
 void entity_update_fixed( Entity *self )
@@ -263,4 +268,39 @@ void entity_on_collision( Entity* self, CollisionInfo collision )
 {
 	if (!self) return;
 	if (self->onCollision)self->onCollision( self, collision );
+}
+
+void entity_follow_path( Entity *self, Uint32 index, float radius )
+{
+	//slog( "Index: %i", index );
+
+	if (!vector2d_distance_between_less_than( self->position, self->path.positions[index], radius ))
+	{
+		Vector2D newPos;
+		vector2d_move_towards( &newPos, self->position, self->path.positions[index], self->move_speed );
+
+		CollisionInfo col = self->col_info;
+
+		if (col.time + 100 > g_time)
+		{
+			if (col.top || col.bottom)
+			{
+				newPos.y = self->position.y;
+			}
+
+			if (col.left || col.right)
+			{
+				newPos.x = self->position.x;
+			}
+		}
+
+		self->position = newPos;
+	}
+	else
+	{
+		self->path.positions[self->path.pos_max - self->path.pos_count] = vector2d( -1, -1 );
+		self->path.pos_count -= 1;
+	}
+
+
 }
