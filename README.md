@@ -1,3 +1,19 @@
+# S.W.A.T. 2D
+A S.W.A.T. Tactical Shooter game where the player must eliminate targets, collect intel, and rescue the hostage.
+
+# Controls
+| Controls          | Description        |
+|-------------------|--------------------|
+| Q                 | Debug              |
+| E                 | Use                |
+| Num Row           | Dialog Response    |
+| Left Click        | Shoot              |
+| Left Click + Drag | Draw Path          |
+| W                 | Precise Move Up    |
+| A                 | Precise Move Left  |
+| S                 | Precise Move Down  |
+| D                 | Precise Move Right |
+
 # gameframework2d (GF2D)
 a collection of utlitity functions designed to facilitate creating 2D games with SDL2
 This project is specifically intended to function as an educational tool for my students taking 2D Game Programming.
