@@ -160,6 +160,16 @@ void think_fixed ( Entity* self )
 	if (keys[SDL_SCANCODE_D] && !self->col_info.right) self->position.x += 1;
 	if (keys[SDL_SCANCODE_R]) self->weapon->state = WEP_RELOAD;
 
+	if (keys[SDL_SCANCODE_E])
+	{
+		if (vector2d_distance_between_less_than( self->position, entity_get_by_tag( "hostage" )->position, 64 ))
+		{
+			Entity *hostage = entity_get_by_tag( "hostage" );
+
+			hostage->state = ENT_CHASE;
+		}
+	}
+
 	if ( time <= SDL_GetTicks () )
 	{
 		if ( canShoot )

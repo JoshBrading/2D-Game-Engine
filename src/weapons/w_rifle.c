@@ -18,7 +18,7 @@ Weapon *rifle_new()
 	wep->reserve_ammo = 120;
 
 	wep->reload_time = 300;
-	wep->fire_rate = 300;
+	wep->fire_rate = 150;
 	wep->damage = 10;
 
 	wep->impact = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );

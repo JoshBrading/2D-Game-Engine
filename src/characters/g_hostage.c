@@ -1,5 +1,8 @@
-#include "c_hostage.h"
-#include "gf2d_sprite.h"
+#include "g_hostage.h"
+#include "g_globals.h"
+#include "g_func.h"
+#include "gf2d_draw.h"
+#include "simple_logger.h"
 
 void hostage_think_fixed( Entity *self );
 void hostage_debug( Entity *self );

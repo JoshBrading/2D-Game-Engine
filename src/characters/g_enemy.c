@@ -3,6 +3,7 @@
 #include "g_func.h"
 #include "gf2d_draw.h"
 #include "simple_logger.h"
+#include "w_rifle.h"
 
 void enemy_think_fixed( Entity *self );
 void debug( Entity *self );
@@ -16,6 +17,19 @@ Entity *enemy_new()
 	Entity *ent = NULL;
 
 	ent = entity_new();
+
+	ent->sprite = gf2d_sprite_load_image( "images/enemy.png" );
+	ent->scale.x = 0.125;
+	ent->scale.y = 0.125;
+
+	ent->offset.x = 16;
+	ent->offset.y = 16;
+
+	ent->bounds.w = 32;
+	ent->bounds.h = 32;
+	ent->bounds.x = ent->position.x - ent->offset.x;
+	ent->bounds.y = ent->position.y - ent->offset.y;
+
 	ent->team = TEAM_ENEMY;
 	ent->tag = "enemy";
 	ent->thinkFixed = enemy_think_fixed;
@@ -29,7 +43,11 @@ Entity *enemy_new()
 	ent->offset.x = 16;
 	ent->offset.x = 16;
 
-	ent->health = 10;
+	ent->health = 100;
+
+	ent->weapon = rifle_new();
+	ent->weapon->owner = ent;
+	ent->weapon->ammo = 999;
 
 	return ent;
 }
@@ -54,6 +72,11 @@ void enemy_think_fixed( Entity* self )
 		if (hit.entity->_inuse && hit.entity->team == TEAM_FRIEND)
 		{
 			self->state = ENT_ATTACK;
+			self->weapon->state = WEP_FIRE;
+		}
+		else
+		{
+			self->weapon->state = WEP_IDLE;
 		}
 	}
 	else if (self->state != ENT_IDLE)

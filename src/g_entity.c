@@ -3,7 +3,7 @@
 #include "g_entity.h"
 #include "simple_logger.h"
 #include "g_collision.h"
-
+#include "g_hud.h"
 #include "g_globals.h"
 
 
@@ -151,12 +151,42 @@ void entity_think( Entity *self )
 {
 	if (!self)return;
 	if (self->think)self->think( self );
+
+	if (strcmp( self->tag, "hostage" ) != 0) return;
+
+	SDL_Rect rect = { 28, 28, 178, 100 };
+	gf2d_draw_fill_rect( rect, vector4d( 0, 0, 0, 128 ) );
+
+	if (vector2d_distance_between_less_than( self->position, vector2d( 32, 32 ), 64 ))
+	{
+		HUD_draw_message( "Rescue The Hostage", vector2d( 32, 64 ), vector3d( 0, 255, 0 ), 170, 21 );
+	}
+	else
+	{
+		HUD_draw_message( "Rescue The Hostage", vector2d( 32, 64 ), vector3d( 255, 255, 255 ), 170, 21 );
+	}
 }
 
 void entity_think_fixed( Entity *self )
 {
 	if (!self)return;
 	if (self->thinkFixed)self->thinkFixed( self );
+
+	if (strcmp( self->tag, "hostage" ) != 0) return;
+
+	if (self->state == ENT_CHASE)
+	{
+		Entity *player = entity_manager_get_by_id( 1 );
+		Vector2D newPos;
+		if (!vector2d_distance_between_less_than( self->position, player->position, 64 ))
+		{
+			vector2d_move_towards( &newPos, self->position, player->position, self->move_speed );
+			self->position = newPos;
+
+		}
+
+	}
+	
 }
 
 void entity_manager_think_all()

@@ -1,5 +1,5 @@
-#ifndef __C_HOSTAGE_H__
-#define __C_HOSTAGE_H__
+#ifndef __G_HOSTAGE_H__
+#define __G_HOSTAGE_H__
 
 #include "g_entity.h"
 

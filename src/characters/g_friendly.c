@@ -3,6 +3,7 @@
 #include "g_func.h"
 #include "gf2d_draw.h"
 #include "simple_logger.h"
+#include "w_rifle.h"
 
 void friendly_think_fixed( Entity *self );
 void friendly_think( Entity *self );
@@ -19,6 +20,9 @@ Entity *friendly_new()
 	ent->think = friendly_think;
 	ent->drawDebug = friendly_debug;
 	ent->onCollision = friendly_collision;
+
+	ent->weapon = rifle_new();
+	ent->weapon->ammo = 999;
 
 	ent->toggles.B = false;
 	ent->toggles.A = false;
@@ -88,6 +92,7 @@ void friendly_think_fixed( Entity *self )
 		{
 			self->door_ent->state = DOOR_BLOWN;
 			self->door_ent->collision_enabled = false;
+			self->state = ENT_WANDER;
 		}
 	}
 	else if (strcmp( self->tag, "shotgun" ) == 0 && self->state == ENT_ACTION)

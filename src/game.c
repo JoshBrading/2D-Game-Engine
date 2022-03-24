@@ -13,14 +13,13 @@
 #include "g_collision.h"
 #include "g_test_bounce_ball.h"
 
+#include "g_hostage.h"
+
 #include "g_weapon.h"
 #include "g_player.h"
 #include "c_intel.h"
-#include "c_hostage.h"
 
 #include "g_hud.h"
-
-//#include "../include/g_weapon.h"
 
 #include "g_weapon.h"
 
@@ -152,11 +151,6 @@ int main ( int argc, char* argv[] )
     {
         Entity *q3;
         q3 = enemy_new();
-        q3->sprite = mouse;
-        q3->bounds.w = q3->sprite->frame_w;
-        q3->bounds.h = q3->sprite->frame_h;
-        q3->bounds.x = q3->sprite->frame_w;
-        q3->bounds.y = q3->sprite->frame_h;
 
         q3->nav_zone.x = 629;
         q3->nav_zone.y = 0;
@@ -177,11 +171,6 @@ int main ( int argc, char* argv[] )
     {
         Entity *q3;
         q3 = enemy_new();
-        q3->sprite = mouse;
-        q3->bounds.w = q3->sprite->frame_w;
-        q3->bounds.h = q3->sprite->frame_h;
-        q3->bounds.x = q3->sprite->frame_w;
-        q3->bounds.y = q3->sprite->frame_h;
 
         q3->nav_zone.x = 629;
         q3->nav_zone.y = 400;
@@ -202,11 +191,6 @@ int main ( int argc, char* argv[] )
     {
         Entity *q3;
         q3 = enemy_new();
-        q3->sprite = mouse;
-        q3->bounds.w = q3->sprite->frame_w;
-        q3->bounds.h = q3->sprite->frame_h;
-        q3->bounds.x = q3->sprite->frame_w;
-        q3->bounds.y = q3->sprite->frame_h;
 
         q3->nav_zone.x = 129;
         q3->nav_zone.y = 0;
@@ -230,10 +214,26 @@ int main ( int argc, char* argv[] )
         intel_new();
     }
    
-   // Entity* hostage = hostage_new();
-   // hostage->sprite = gf2d_sprite_load_image( "images/hostage.png" );
-   // hostage->team = TEAM_FRIEND;
-   // hostage->state = ENT_IDLE;
+    Entity* hostage = entity_new();
+    hostage->sprite = gf2d_sprite_load_image( "images/hostage.png" );
+    hostage->team = TEAM_FRIEND;
+    hostage->state = ENT_IDLE;
+    hostage->tag = "hostage";
+    hostage->scale.x = 0.125;
+    hostage->scale.y = 0.125;
+    hostage->offset.x = 16;
+    hostage->offset.y = 16;
+    hostage->bounds.w = 32;
+    hostage->bounds.h = 32;
+    hostage->bounds.x = hostage->position.x - hostage->offset.x;
+    hostage->bounds.y = hostage->position.y - hostage->offset.y;
+    hostage->toggles.B = false;
+    hostage->toggles.A = false;
+    hostage->move_speed = 3;
+    hostage->offset.x = 16;
+    hostage->offset.x = 16;
+    hostage->position = vector2d( 1130, 325 );
+    hostage->health = 999;
 
     world_load( "config/asset_list.json" );
 
