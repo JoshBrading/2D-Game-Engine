@@ -4,6 +4,13 @@
 #include "g_player.h"
 #include "g_particle.h"
 #include "g_globals.h"
+#include "w_rifle.h"
+#include "g_weapon.h"
+#include "g_func.h"
+#include "g_hud.h"
+
+#include <SDL_ttf.h>
+
 //#include "g_func.h"
 
 void think_fixed ( Entity* self );
@@ -11,14 +18,17 @@ void think ( Entity* self );
 void player_collision( Entity *self, CollisionInfo info );
 void move_to_target( Entity *self, Uint32 index );
 void draw_path( Entity *self );
+void player_draw_hud( Entity *self );
+
 
 Vector2D target;
-Uint8 leftMouseButton = 0;
+Uint8 canPath = 0;
+Uint8 canShoot = 0;
 
 Vector2D mouse;
 
 
-Vector2D look_at_angle_slope( Vector2D a, Vector2D b );
+//Vector2D look_at_angle_slope( Vector2D a, Vector2D b );
 Entity* player_new ()
 {
 	Entity *ent = NULL;
@@ -29,7 +39,9 @@ Entity* player_new ()
 	Vector2D pos = vector2d( -1, -1 );
 
 
-	ent->team = 0;
+	ent->team = TEAM_FRIEND;
+
+	ent->tag = "player";
 
 	ent->think = think;
 	ent->thinkFixed = think_fixed;
@@ -67,6 +79,10 @@ Entity* player_new ()
 	ent->path.pos_count = 0;
 	ent->path.color = vector4d( 0, 255, 0, 255 );
 
+	ent->weapon = rifle_new();
+
+	ent->weapon->owner = ent;
+
 	target = vector2d ( 0, 0 );
 
 	return ent;
@@ -86,20 +102,24 @@ void think ( Entity* self )
 	target.x = mx;
 	target.y = my;
 
-	if ( keys[SDL_SCANCODE_W] ) self->position.y -= 1;
-	if ( keys[SDL_SCANCODE_A] ) self->position.x -= 1;
-	if ( keys[SDL_SCANCODE_S] ) self->position.y += 1;
-	if ( keys[SDL_SCANCODE_D] ) self->position.x += 1;
-
 	if ( e.type == SDL_MOUSEBUTTONDOWN )
 	{
-		leftMouseButton = 1;
+		if (e.button.button == SDL_BUTTON_LEFT)
+		{
+			if (collision_point_rect_test( target, self->bounds ))
+				canPath = 1;
+			else
+				self->weapon->state = WEP_FIRE;
+		}
+
+			//canShoot = 1;
 		//slog ( "Mouse clicked" );
 	}
 
 	if ( e.type == SDL_MOUSEBUTTONUP )
 	{
-		leftMouseButton = 0;
+		canPath = 0;
+		self->weapon->state = WEP_IDLE;
 	}
 
 	Vector2D hit_point;
@@ -107,12 +127,14 @@ void think ( Entity* self )
 	Entity* ent;
 	mouse = vector2d ( mx, my );
 
-	raycast ( self->position, look_at_angle_slope ( self->position, mouse ), 64, self->_id );
+	raycast ( self->position, look_at_angle_slope ( self->position, mouse ), 64, self->_id, TEAM_FRIEND );
 	gf2d_draw_circle ( self->position, 64, vector4d ( 255, 255, 255, 100 ) );
 
 	draw_path( self );
 	//self->position.x = (float)mx;
 	//self->position.y = (float)my;
+
+	player_draw_hud( self );
 
 }
 
@@ -120,20 +142,39 @@ int fireRate = 75;  // time * 10ms between shots
 int time = 0;
 void think_fixed ( Entity* self )
 {
-	//if ( time <= SDL_GetTicks () )
-	//{
-	//	if ( leftMouseButton )
-	//	{
-	//		shoot ( self );
-	//	}
-	//	time = SDL_GetTicks () + fireRate;
-	//}
+	const Uint8 *keys;
+	keys = SDL_GetKeyboardState( NULL ); // get the keyboard state for this frame
+
+	SDL_Event e;
+	SDL_PollEvent( &e );
+
+	int mx, my;
+	SDL_GetMouseState( &mx, &my );
+
+	target.x = mx;
+	target.y = my;
+
+	if (keys[SDL_SCANCODE_W] && !self->col_info.top) self->position.y -= 1;
+	if (keys[SDL_SCANCODE_A] && !self->col_info.left) self->position.x -= 1;
+	if (keys[SDL_SCANCODE_S] && !self->col_info.bottom) self->position.y += 1;
+	if (keys[SDL_SCANCODE_D] && !self->col_info.right) self->position.x += 1;
+	if (keys[SDL_SCANCODE_R]) self->weapon->state = WEP_RELOAD;
+
+	if ( time <= SDL_GetTicks () )
+	{
+		if ( canShoot )
+		{
+			self->weapon->fire_mode = WEP_FIRE;
+			//shoot ( self );
+		}
+		time = SDL_GetTicks () + fireRate;
+	}
 		
-	if (leftMouseButton && self->path.pos_count != self->path.pos_max ) // why doesnt < work here?
+	if (canPath && self->path.pos_count != self->path.pos_max ) // why doesnt < work here?
 	{
 		if (self->timers.A + 500 < g_time)
 		{
-			slog( "Writing pos: %i", self->path.pos_count );
+			//slog( "Writing pos: %i", self->path.pos_count );
 			self->path.positions[self->path.pos_count] = mouse;
 			self->path.pos_count += 1;
 
@@ -141,7 +182,7 @@ void think_fixed ( Entity* self )
 		}
 	}
 
-	if (self->path.pos_count != 0 && !leftMouseButton)
+	if (self->path.pos_count != 0 && !canPath)
 	{
 		move_to_target( self, self->path.pos_max - self->path.pos_count );
 	}
@@ -180,48 +221,48 @@ void move_to_target( Entity *self, Uint32 index )
 	}
 }
 
-void shoot ( Entity* self )
-{
-	HitObj hit;
-	hit = raycast ( self->position, look_at_angle_slope ( self->position, target ), 1024, self->_id );
-	
-	Sprite *vfx;
-	vfx = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );
-	vfx->frame_count = 32;
-
-	Particle *particle = particle_new();
-	particle->position = hit.position;
-	particle->scale.x = 0.1;
-	particle->scale.y = 0.1;
-	particle->sprite = vfx;
-	particle->life_time = 32;
-	particle->timescale = 0.5;
-	particle->offset.x = 10;
-	particle->offset.y = 10;
-	particle->frame = 1;
-	
-	if ( hit.entity == NULL ) return;
-	if ( hit.entity->_inuse )
-	{
-		//slog ( "Hit entity with ID: %i", hit.entity->_id );
-		//gf2d_draw_line( self->position, hit.position, vector4d( 255, 255, 0, 255 ) );
-		//hit.entity->damage ( hit.entity, 1.0f, self );
-		set_health ( hit.entity, 1, self);
-	}
-
-
-
-}
+//void shoot ( Entity* self )
+//{
+//	HitObj hit;
+//	hit = raycast ( self->position, look_at_angle_slope ( self->position, target ), 1024, self->_id );
+//	
+//	Sprite *vfx;
+//	vfx = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );
+//	vfx->frame_count = 32;
+//
+//	Particle *particle = particle_new();
+//	particle->position = hit.position;
+//	particle->scale.x = 0.1;
+//	particle->scale.y = 0.1;
+//	particle->sprite = vfx;
+//	particle->life_time = 32;
+//	particle->timescale = 0.5;
+//	particle->offset.x = 10;
+//	particle->offset.y = 10;
+//	particle->frame = 1;
+//	
+//	if ( hit.entity == NULL ) return;
+//	if ( hit.entity->_inuse )
+//	{
+//		//slog ( "Hit entity with ID: %i", hit.entity->_id );
+//		//gf2d_draw_line( self->position, hit.position, vector4d( 255, 255, 0, 255 ) );
+//		//hit.entity->damage ( hit.entity, 1.0f, self );
+//		set_health ( hit.entity, 1, self);
+//	}
+//
+//
+//
+//}
 
 void player_collision( Entity *self, CollisionInfo info )
 {
 	self->col_info = info;
 
 	// Wiggle around :)
-	if (info.side == COL_LEFT)		self->position.x += 0.01;
-	if (info.side == COL_RIGHT)		self->position.x -= 0.01;
-	if (info.side == COL_TOP)		self->position.y += 0.01;
-	if (info.side == COL_BOTTOM)	self->position.y -= 0.01;
+	if (info.side == COL_LEFT)		self->position.x -= 1;
+	if (info.side == COL_RIGHT)		self->position.x += 1;
+	if (info.side == COL_TOP)		self->position.y -= 1;
+	if (info.side == COL_BOTTOM)	self->position.y += 1;
 }
 
 void draw_path( Entity *self )
@@ -244,4 +285,12 @@ void draw_path( Entity *self )
 	gf2d_draw_circle( self->path.positions[2], 4, self->path.color );
 	gf2d_draw_circle( self->path.positions[3], 4, self->path.color );
 
+}
+
+char text[32];
+
+void player_draw_hud( Entity *self )
+{
+	snprintf( text, sizeof( text ), "Ammo: %i/%i", self->weapon->ammo, self->weapon->reserve_ammo );
+	HUD_draw_message( text, vector2d( 32, 650 ), vector3d( 255, 255, 255 ), 128, 32 );
 }

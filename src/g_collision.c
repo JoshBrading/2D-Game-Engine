@@ -135,7 +135,7 @@ void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, 
 					if ( !testCell.entity_list[i]->_inuse ) continue;
 					if ( entity->_id == testCell.entity_list[i]->_id ) continue;
 					if ( !testCell.entity_list[i]->collision_enabled) continue;
-					if (entity->team == 0 && testCell.entity_list[i]->team == 0) continue; // Friendlies do not collide with friendlies
+					if (entity->team == TEAM_FRIEND && testCell.entity_list[i]->team == TEAM_FRIEND) continue; // Friendlies do not collide with friendlies
 
 					CollisionInfo info;
 					info.side = COL_NULL;
@@ -528,6 +528,19 @@ int collision_line_line_test ( Line A, Line B, Vector2D* hit_point )
 	return false;
 }
 
+Uint8 collision_point_rect_test( Vector2D p, Rect r )
+{
+	if (p.x >= r.x &&
+		 p.x <= r.x + r.w &&
+		 p.y >= r.y &&
+		 p.y <= r.y + r.h)
+	{
+		return true;
+	}
+
+	return false;
+}
+
 void collision_system_update_all ()
 {
 	int i;
@@ -542,7 +555,7 @@ void collision_system_update_all ()
 }
 
 // TODO: Clean this function up!
-HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32 id_mask )
+HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32 id_mask, Uint32 team_mask )
 {
 	HitObj hit;
 	hit.entity = NULL;
@@ -618,6 +631,7 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 		if ( !entity_manager->entity_list[i]._inuse ) continue;
 		if ( entity_manager->entity_list[i]._id == id_mask ) continue;
 		if (!entity_manager->entity_list[i].collision_enabled) continue;
+		if (entity_manager->entity_list[i].team == team_mask) continue;
 
 		Entity* ent = &entity_manager->entity_list[i];
 

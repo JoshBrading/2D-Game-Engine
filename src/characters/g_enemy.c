@@ -9,16 +9,19 @@ void debug( Entity *self );
 void get_target_position( Entity *self );
 void enemy_collision( Entity *self, CollisionInfo info );
 void set_visibility( Entity *self, Entity *check );
+void enemy_die( Entity *self );
 
 Entity *enemy_new()
 {
 	Entity *ent = NULL;
 
 	ent = entity_new();
-	ent->team = 1;
+	ent->team = TEAM_ENEMY;
+	ent->tag = "enemy";
 	ent->thinkFixed = enemy_think_fixed;
 	ent->drawDebug = debug;
 	ent->onCollision = enemy_collision;
+	ent->onDeath = enemy_die;
 
 	ent->toggles.B = false;
 
@@ -33,6 +36,7 @@ Entity *enemy_new()
 
 void enemy_think_fixed( Entity* self )
 {
+	if (!self->_inuse) return;
 	HitObj hit;
 	Entity *player;
 
@@ -42,12 +46,12 @@ void enemy_think_fixed( Entity* self )
 	gf2d_draw_circle( self->position, self->view_range, vector4d( 255, 0, 255, 255 ) );
 
 	set_visibility( self, player );
-	hit = raycast( self->position, look_at_angle_slope( self->position, player->position ), self->view_range, self->_id );
+	hit = raycast( self->position, look_at_angle_slope( self->position, player->position ), self->view_range, self->_id, TEAM_ENEMY );
 
 
 	if (hit.entity)
 	{
-		if (hit.entity->_inuse && hit.entity->team == 0)
+		if (hit.entity->_inuse && hit.entity->team == TEAM_FRIEND)
 		{
 			self->state = ENT_ATTACK;
 		}
@@ -143,14 +147,19 @@ void enemy_collision( Entity *self, CollisionInfo info )
 void set_visibility( Entity *self, Entity* check )
 {
 	HitObj vis_check;
-	vis_check = raycast( self->position, look_at_angle_slope( self->position, check->position ), 512, self->_id );
+	vis_check = raycast( self->position, look_at_angle_slope( self->position, check->position ), 512, self->_id, TEAM_ENEMY );
 	if (vis_check.entity)
 	{
-		if (vis_check.entity->_inuse && vis_check.entity->team == 0 && vis_check.entity == check)
+		if (vis_check.entity->_inuse && vis_check.entity->team == TEAM_FRIEND && vis_check.entity == check)
 		{
 			self->visibility = true;
 			return;
 		}
 	}
 	self->visibility = false;
+}
+
+void enemy_die( Entity *self )
+{
+
 }

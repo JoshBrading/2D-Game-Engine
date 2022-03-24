@@ -115,49 +115,60 @@ void world_load( char *filename )
         }
         else
         {
-            for (int i = 0; i < 12; i++)
+
+
+            Uint32 frame_h, frame_w, frames_per_line, height, width, hit_offset_x, hit_offset_y, x, y, interact_x, interact_y;
+            float speed, range, health;
+
+            Entity *door;
+            door = door_new();
+
+            sj_get_integer_value( sj_object_get_value( data, "height" ), &height );
+            sj_get_integer_value( sj_object_get_value( data, "width" ), &width );
+
+            sj_get_integer_value( sj_object_get_value( data, "hit_off_x" ), &hit_offset_x );
+            sj_get_integer_value( sj_object_get_value( data, "hit_off_y" ), &hit_offset_y );
+
+            sj_get_integer_value( sj_object_get_value( data, "position_x" ), &x );
+            sj_get_integer_value( sj_object_get_value( data, "position_y" ), &y );
+
+            sj_get_integer_value( sj_object_get_value( data, "interact_offset_x" ), &interact_x );
+            sj_get_integer_value( sj_object_get_value( data, "interact_offset_y" ), &interact_y );
+
+            sj_get_integer_value( sj_object_get_value( data, "frame_h" ), &frame_h );
+            sj_get_integer_value( sj_object_get_value( data, "frame_w" ), &frame_w );
+            sj_get_integer_value( sj_object_get_value( data, "frames_per_line" ), &frames_per_line );
+
+            sj_get_float_value( sj_object_get_value( data, "speed" ), &speed );
+            sj_get_float_value( sj_object_get_value( data, "range" ), &range );
+            sj_get_float_value( sj_object_get_value( data, "health" ), &health );
+
+            door->sprite = gf2d_sprite_load_all( filename, frame_w, frame_h, frames_per_line );
+            door->position.x = x;
+            door->position.y = y;
+            door->health = 1;
+            door->interact_radius = range;
+            door->interact_offset = vector2d( interact_x, interact_y );
+            door->speed.x = speed;
+            door->state = DOOR_CLOSED;
+
+            if (height == -1 || width == -1)
             {
-
-                Uint32 frame_h, frame_w, frames_per_line, height, width;
-                float speed, range, health;
-
-                Entity *door;
-                door = door_new();
-
-                sj_get_integer_value( sj_object_get_value( data, "height" ), &height );
-                sj_get_integer_value( sj_object_get_value( data, "width" ), &width );
-
-                sj_get_integer_value( sj_object_get_value( data, "frame_h" ), &frame_h );
-                sj_get_integer_value( sj_object_get_value( data, "frame_w" ), &frame_w );
-                sj_get_integer_value( sj_object_get_value( data, "frames_per_line" ), &frames_per_line );
-
-                sj_get_float_value( sj_object_get_value( data, "speed" ), &speed );
-                sj_get_float_value( sj_object_get_value( data, "range" ), &range );
-                sj_get_float_value( sj_object_get_value( data, "health" ), &health );
-
-                door->sprite = gf2d_sprite_load_all( filename, frame_w, frame_h, frames_per_line );
-                door->position.x = rand() % 1050;
-                door->position.y = rand() % 550;
-                door->health = 1;
-                door->interact_radius = range;
-                door->speed.x = speed;
-                door->state = DOOR_CLOSED;
-
-                if (height == -1 || width == -1)
-                {
-                    door->bounds.w = door->sprite->frame_w;
-                    door->bounds.h = door->sprite->frame_h;
-                    door->bounds.x = door->position.x;
-                    door->bounds.y = door->position.y;
-                }
-                else
-                {
-                    door->bounds.w = width;
-                    door->bounds.h = height;
-                    door->bounds.x = door->position.x;
-                    door->bounds.y = door->position.y;
-                }
+                door->bounds.w = door->sprite->frame_w;
+                door->bounds.h = door->sprite->frame_h;
+                door->bounds.x = door->position.x;
+                door->bounds.y = door->position.y;
             }
+            else
+            {
+                door->bounds.w = width;
+                door->bounds.h = height;
+                door->bounds.x = door->position.x + hit_offset_x;
+                door->bounds.y = door->position.y + hit_offset_y;
+            }
+
+            slog( "DoorP: %f, O: %i, B: %f", door->position.y, hit_offset_y, door->bounds.y );
+            
         }
     }
 }

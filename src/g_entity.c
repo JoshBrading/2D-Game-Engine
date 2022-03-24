@@ -33,13 +33,23 @@ void entity_manager_init( Uint32 maxEntities )
 	slog( "EntityManager: Initialized" );
 }
 
-void entity_manager_draw_all()
+void entity_manager_draw_all() // Make this better in the future...
 {
 	for (int i = 0; i < entity_manager.entity_count; i++)
 	{
 		if (entity_manager.entity_list[i]._inuse)
 		{
-			entity_draw( &entity_manager.entity_list[i] );
+			if(strcmp( entity_manager.entity_list[i].tag, "door") == 0)
+				entity_draw( &entity_manager.entity_list[i] );
+		}
+	}
+
+	for (int i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (entity_manager.entity_list[i]._inuse)
+		{
+			if(strcmp( entity_manager.entity_list[i].tag, "door" ) != 0)
+				entity_draw( &entity_manager.entity_list[i] );
 		}
 	}
 
@@ -88,6 +98,8 @@ Entity *entity_new()
 			entity_manager.entity_list[i].col_timer = 0;
 			entity_manager.entity_list[i].collision_enabled = true;
 			entity_manager.entity_list[i].visibility = true;
+			entity_manager.entity_list[i].tag = "NULL";
+			entity_manager.entity_list[i].team = TEAM_NULL;
 
 			return (&entity_manager.entity_list[i]);
 		}
@@ -131,6 +143,7 @@ void entity_free( Entity *self )
 	{
 		gf2d_sprite_free( self->sprite );
 	}
+	self->_inuse = false;
 	memset( self, 0, sizeof( self ) );
 }
 
@@ -175,6 +188,14 @@ void entity_manager_think_fixed_all()
 void entity_update( Entity *self )
 {
 	if (!self)return;
+
+	if (self->col_info.time < g_time + 100)
+	{
+		self->col_info.top = false;
+		self->col_info.bottom = false;
+		self->col_info.left = false;
+		self->col_info.right = false;
+	}
 	self->bounds.x = self->position.x - self->offset.x;
 	self->bounds.y = self->position.y - self->offset.y;
 	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->position, 32.0f );
@@ -250,18 +271,20 @@ EntityManager *entity_manager_get()
 void set_health ( Entity* ent, float damage, Entity* inflictor )
 {
 	ent->health -= damage;
-	slog ( "Health: %f", ent->health );
+	//slog ( "Health: %f", ent->health );
 }
 void damage ( Entity* self, float damage, Entity* inflictor )
 {
 	self->health -= damage;
-	slog ( "Entity: %i damaged by: %i", self->_id, inflictor->_id );
+	//slog ( "Entity: %i damaged by: %i", self->_id, inflictor->_id );
 }
 
 void entity_die ( Entity* self )
 {
 	if (!self) return;
 	if (self->onDeath)self->onDeath( self );
+
+	entity_free( self );
 }
 
 void entity_on_collision( Entity* self, CollisionInfo collision )
@@ -303,4 +326,62 @@ void entity_follow_path( Entity *self, Uint32 index, float radius )
 	}
 
 
+}
+
+Uint32 entity_get_enemy_count()
+{
+	Uint32 enemy_count = 0;
+	for (int i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse) continue;
+		if (entity_manager.entity_list[i].team == TEAM_ENEMY)
+		{
+			enemy_count += 1;
+		}
+	}
+
+	return enemy_count;
+}
+
+Uint32 entity_get_friendly_count()
+{
+	Uint32 friendly_count = 0;
+	for (int i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse) continue;
+		if (entity_manager.entity_list[i].team == TEAM_FRIEND)
+		{
+			friendly_count += 1;
+		}
+	}
+
+	return friendly_count;
+}
+
+Uint32 entity_get_intel_count()
+{
+	Uint32 intel_count = 0;
+	for (int i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse) continue;
+		if (strcmp( entity_manager.entity_list[i].tag, "intel") == 0)
+		{
+			intel_count += 1;
+		}
+	}
+
+	return intel_count;
+}
+
+Entity *entity_get_by_tag( char *tag )
+{
+	for (int i = 0; i < entity_manager.entity_count; i++)
+	{
+		if (!entity_manager.entity_list[i]._inuse) continue;
+		if (strcmp( entity_manager.entity_list[i].tag, tag) == 0)
+		{
+			return &entity_manager.entity_list[i];
+		}
+	}
+	return NULL;
 }

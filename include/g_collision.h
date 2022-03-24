@@ -92,5 +92,7 @@ int collision_line_line_test ( Line A, Line B, Vector2D* hit_point );
 
 int collision_line_rect_test ( Rect A, Line B, Vector2D* hit_point );
 
-HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32 id_mask );
+Uint8 collision_point_rect_test( Vector2D p, Rect r );
+
+HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32 id_mask, Uint32 team_mask );
 #endif

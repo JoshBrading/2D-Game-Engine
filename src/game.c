@@ -13,7 +13,12 @@
 #include "g_collision.h"
 #include "g_test_bounce_ball.h"
 
+#include "g_weapon.h"
 #include "g_player.h"
+#include "c_intel.h"
+#include "c_hostage.h"
+
+#include "g_hud.h"
 
 //#include "../include/g_weapon.h"
 
@@ -67,6 +72,8 @@ int main ( int argc, char* argv[] )
     particle_manager_init ( 1024 );
     weapon_manager_init ( 128 );
 
+    HUD_init();
+
     /*demo setup*/
     sprite = gf2d_sprite_load_image ( "images/backgrounds/bg_flat.png" );
     mouse = gf2d_sprite_load_all ( "images/pointer.png", 32, 32, 16 );
@@ -80,13 +87,71 @@ int main ( int argc, char* argv[] )
     //q->bounds.y = 0;
 
     Entity* player = player_new ();
-    player->team = 0;
-    player->position = vector2d ( 500, 250 );
+    player->team = TEAM_FRIEND;
+    player->position = vector2d ( 10, 10 );
 
-    for ( int i = 0; i < 4; i++ )
+    Entity* demo;
+    demo = friendly_new ();
+    demo->sprite = gf2d_sprite_load_image( "images/expo.png" );
+    demo->scale.x = 0.125;
+    demo->scale.y = 0.125;
+    demo->tag = "demo";
+    demo->offset.x = 16;
+    demo->offset.y = 16;
+
+    demo->bounds.w = 32;
+    demo->bounds.h = 32;
+    demo->bounds.x = demo->position.x - demo->offset.x;
+    demo->bounds.y = demo->position.y - demo->offset.y;
+
+    demo->nav_zone.x = 629;
+    demo->nav_zone.y = 0;
+    demo->nav_zone.w = 550;
+    demo->nav_zone.h = 350;
+
+    demo->position.y = 20 + 80;// rand() % 1050;
+    demo->position.x = 20;// rand() % 550;
+
+    demo->target_position = demo->position;
+    demo->view_range = 100;
+
+    demo->idle_time_max = 1000;
+    demo->idle_time_min = 500;
+    demo->state = ENT_WANDER;
+
+    Entity *shotgun;
+    shotgun = friendly_new();
+    shotgun->sprite = gf2d_sprite_load_image( "images/shotgun.png" );
+    shotgun->scale.x = 0.125;
+    shotgun->scale.y = 0.125;
+    shotgun->tag = "shotgun";
+    shotgun->offset.x = 16;
+    shotgun->offset.y = 16;
+
+    shotgun->bounds.w = 32;
+    shotgun->bounds.h = 32;
+    shotgun->bounds.x = shotgun->position.x - shotgun->offset.x;
+    shotgun->bounds.y = shotgun->position.y - shotgun->offset.y;
+
+    shotgun->nav_zone.x = 629;
+    shotgun->nav_zone.y = 0;
+    shotgun->nav_zone.w = 550;
+    shotgun->nav_zone.h = 350;
+
+    shotgun->position.y = 20 + 80;// rand() % 1050;
+    shotgun->position.x = 20;// rand() % 550;
+
+    shotgun->target_position = shotgun->position;
+    shotgun->view_range = 100;
+
+    shotgun->idle_time_max = 1000;
+    shotgun->idle_time_min = 500;
+    shotgun->state = ENT_WANDER;
+
+    for (int i = 0; i < 3; i++)
     {
-        Entity* q3;
-        q3 = friendly_new ();
+        Entity *q3;
+        q3 = enemy_new();
         q3->sprite = mouse;
         q3->bounds.w = q3->sprite->frame_w;
         q3->bounds.h = q3->sprite->frame_h;
@@ -98,8 +163,58 @@ int main ( int argc, char* argv[] )
         q3->nav_zone.w = 550;
         q3->nav_zone.h = 350;
 
-        q3->position.x = 800 + 80* i;// rand() % 1050;
-        q3->position.y = 200;// rand() % 550;
+        q3->position.x = 800 + 80 * i;// rand() % 1050;
+        q3->position.y = 20;// rand() % 550;
+
+        q3->target_position = q3->position;
+        q3->view_range = 100;
+
+        q3->idle_time_max = 1000;
+        q3->idle_time_min = 500;
+        q3->state = ENT_WANDER;
+    }
+    for (int i = 0; i < 2; i++)
+    {
+        Entity *q3;
+        q3 = enemy_new();
+        q3->sprite = mouse;
+        q3->bounds.w = q3->sprite->frame_w;
+        q3->bounds.h = q3->sprite->frame_h;
+        q3->bounds.x = q3->sprite->frame_w;
+        q3->bounds.y = q3->sprite->frame_h;
+
+        q3->nav_zone.x = 629;
+        q3->nav_zone.y = 400;
+        q3->nav_zone.w = 550;
+        q3->nav_zone.h = 250;
+
+        q3->position.x = 650 + 80 * i;// rand() % 1050
+        q3->position.y = 510;// rand() % 550;
+
+        q3->target_position = q3->position;
+        q3->view_range = 100;
+
+        q3->idle_time_max = 1000;
+        q3->idle_time_min = 500;
+        q3->state = ENT_WANDER;
+    }
+    for (int i = 0; i < 2; i++)
+    {
+        Entity *q3;
+        q3 = enemy_new();
+        q3->sprite = mouse;
+        q3->bounds.w = q3->sprite->frame_w;
+        q3->bounds.h = q3->sprite->frame_h;
+        q3->bounds.x = q3->sprite->frame_w;
+        q3->bounds.y = q3->sprite->frame_h;
+
+        q3->nav_zone.x = 129;
+        q3->nav_zone.y = 0;
+        q3->nav_zone.w = 470;
+        q3->nav_zone.h = 250;
+
+        q3->position.x = 129 + 80 * i;// rand() % 1050
+        q3->position.y = 50;// rand() % 550;
 
         q3->target_position = q3->position;
         q3->view_range = 100;
@@ -109,29 +224,23 @@ int main ( int argc, char* argv[] )
         q3->state = ENT_WANDER;
     }
 
-    SDL_Color color_white = { 255, 255, 255 };
-    SDL_Color color_red = { 255, 0, 0 };
-    SDL_Color color_green = { 0, 255, 0 };
-    SDL_Color color_blue = { 0, 0, 255 };
-    SDL_Color color_cyan = { 0, 255, 255 };
 
-    TTF_Init ();
-    SDL_Renderer* renderer = gf2d_graphics_get_renderer ();
-    TTF_Font* font = TTF_OpenFont ( "fonts/arial.ttf", 32 );
-
-    if ( font == NULL )
+    for (int i = 0; i < 3; i++)
     {
-        fprintf ( stderr, "error: font not found\n" );
-        exit ( EXIT_FAILURE );
+        intel_new();
     }
-
+   
+   // Entity* hostage = hostage_new();
+   // hostage->sprite = gf2d_sprite_load_image( "images/hostage.png" );
+   // hostage->team = TEAM_FRIEND;
+   // hostage->state = ENT_IDLE;
 
     world_load( "config/asset_list.json" );
 
 
     Uint32 time = 0;
     Uint32 time2 = 0;
-    char text[32];
+    char text_line_1[32];
     /*main game loop*/
     while ( !done )
     {
@@ -172,13 +281,10 @@ int main ( int argc, char* argv[] )
             entity_manager_think_fixed_all ();
             particle_manager_update_fixed_all ();
 
-            time = g_time;
-        }
+            weapon_manager_think_fixed_all();
 
-        if ( g_time > time2 + 100 )
-        {
-            snprintf ( text, sizeof ( text ), "FPS: %f", gf2d_graphics_get_frames_per_second () );
-            time2 = g_time;
+
+            time = g_time;
         }
         if ( g_debug )
         {
@@ -186,21 +292,8 @@ int main ( int argc, char* argv[] )
             static_entity_manager_draw_debug();
             entity_manager_draw_debug ();
         }
-
-        SDL_Surface* surfaceMessage = TTF_RenderText_Blended ( font, text, color_cyan );
-
-        SDL_Texture* Message = SDL_CreateTextureFromSurface ( renderer, surfaceMessage );
-
-        SDL_Rect Message_rect; //create a rect
-        Message_rect.x = 32;  //controls the rect's x coordinate 
-        Message_rect.y = 650; // controls the rect's y coordinte
-        Message_rect.w = 0; // controls the width of the rect
-        Message_rect.h = 0; // controls the height of the rect
-
-        TTF_SizeText ( font, Message, &Message_rect.w, &Message_rect.h );
-
-        SDL_RenderCopy ( renderer, Message, NULL, &Message_rect );
-
+       
+        HUD_draw();
         //UI elements last
         //gf2d_sprite_draw(
         //    mouse,
@@ -222,7 +315,6 @@ int main ( int argc, char* argv[] )
     slog ( "---==== END ====---" );
     return 0;
 }
-
 /*eol@eof*/
 
 

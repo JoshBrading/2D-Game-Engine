@@ -4,6 +4,7 @@
 #include "gf2d_draw.h"
 #include "simple_logger.h"
 
+void friendly_think_fixed( Entity *self );
 void friendly_think( Entity *self );
 void friendly_debug( Entity *self );
 void friendly_collision( Entity *self, CollisionInfo info );
@@ -13,40 +14,28 @@ Entity *friendly_new()
 	Entity *ent = NULL;
 
 	ent = entity_new();
-	ent->team = 0;
+	ent->team = TEAM_FRIEND;
+	ent->thinkFixed = friendly_think_fixed;
 	ent->think = friendly_think;
 	ent->drawDebug = friendly_debug;
 	ent->onCollision = friendly_collision;
 
 	ent->toggles.B = false;
 	ent->toggles.A = false;
-	ent->move_speed = 1;
+	ent->move_speed = 4;
 	ent->offset.x = 16;
 	ent->offset.x = 16;
 
-	ent->health = 10;
+	ent->health = 100;
 
 	return ent;
 }
 
-void friendly_think( Entity *self )
+void friendly_think_fixed( Entity *self )
 {
 	HitObj hit;
 	Entity *player;
-	Uint8 leftMouseButton = 0;
 
-	SDL_Event e;
-	SDL_PollEvent( &e );
-	if (e.type == SDL_MOUSEBUTTONDOWN)
-	{
-		leftMouseButton = 1;
-		//slog ( "Mouse clicked" );
-	}
-
-	if (e.type == SDL_MOUSEBUTTONUP)
-	{
-		leftMouseButton = 0;
-	}
 
 	player = entity_manager_get_by_id( 1 );
 
@@ -82,72 +71,46 @@ void friendly_think( Entity *self )
 	//gf2d_draw_line( self->position, player->position, vector4d( 255, 0, 0, 50 ) );
 	//gf2d_draw_circle( self->position, self->view_range, vector4d( 255, 0, 255, 255 ) );
 
-	hit = raycast( self->position, look_at_angle_slope( self->position, player->position ), self->view_range, self->_id );
+	hit = raycast( self->position, look_at_angle_slope( self->position, player->position ), self->view_range, self->_id, TEAM_FRIEND );
 
 	self->path.color = vector4d( 255, 0, 0, 255 );
 
+	if (strcmp( self->tag, "demo" ) == 0 && self->state == ENT_ACTION)
+	{
+		if (!vector2d_distance_between_less_than( self->position, self->target_position, 15 ))
+		{
+			Vector2D newPos;
+			vector2d_move_towards( &newPos, self->position, self->target_position, self->move_speed );
 
-	//if (hit.entity)
-	//{
-	//	if (hit.entity->_inuse && hit.entity->team == 1)
-	//	{
-	//		self->state = ENT_ATTACK;
-	//	}
-	//}
-	//else if (self->state != ENT_IDLE)
-	//{
-	//	self->state = ENT_WANDER;
-	//}
-	//
-	//
-	//if (self->state == ENT_WANDER)
-	//{
-	//	self->target_position = player->position;
-	//
-	//
-	//	if (!vector2d_distance_between_less_than( self->position, self->target_position, 100 ))
-	//	{
-	//		Vector2D newPos;
-	//		vector2d_move_towards( &newPos, self->position, self->target_position, self->move_speed );
-	//
-	//		CollisionInfo col = self->col_info;
-	//
-	//		if (col.time + 100 > g_time)
-	//		{
-	//			if (col.top || col.bottom)
-	//			{
-	//				newPos.y = self->position.y;
-	//			}
-	//
-	//			if (col.left || col.right)
-	//			{
-	//				newPos.x = self->position.x;
-	//			}
-	//		}
-	//
-	//		self->position = newPos;
-	//	}
-	//	else
-	//	{
-	//		int idle_timer = self->idle_time_max - self->idle_time_max;
-	//		self->timers.A = g_time + self->idle_time_max;
-	//		self->state = ENT_IDLE;
-	//		self->target_position = player->position;
-	//	}
-	//}
-	//else if (self->state == ENT_IDLE)
-	//{
-	//	if (self->timers.A < g_time)
-	//	{
-	//
-	//		self->state = ENT_WANDER;
-	//	}
-	//}
-	//
-	//
-	//if (self->state != ENT_WANDER) self->toggles.A = false;
-	//
-	//if (self->col_info.time < g_time) self->toggles.B = false;
+			self->position = newPos;
+		}
+		else
+		{
+			self->door_ent->state = DOOR_BLOWN;
+			self->door_ent->collision_enabled = false;
+		}
+	}
+	else if (strcmp( self->tag, "shotgun" ) == 0 && self->state == ENT_ACTION)
+	{
+		if (!vector2d_distance_between_less_than( self->position, self->target_position, 15 ))
+		{
+			Vector2D newPos;
+			vector2d_move_towards( &newPos, self->position, self->target_position, self->move_speed );
+
+			self->position = newPos;
+		}
+		else
+		{
+			self->door_ent->state = DOOR_SHOT;
+			self->door_ent->collision_enabled = false;
+			self->state = ENT_WANDER;
+		}
+	}
+}
+
+void friendly_think( Entity *self )
+{
+
 }
 
 void f_get_target_position( Entity *self )
@@ -172,6 +135,11 @@ void friendly_debug( Entity *self )
 		gf2d_draw_circle( self->path.positions[1], 32, self->path.color );
 		gf2d_draw_circle( self->path.positions[2], 32, self->path.color );
 		gf2d_draw_circle( self->path.positions[3], 32, self->path.color );
+		
+		gf2d_draw_circle( self->path.positions[0], 6, self->path.color );
+		gf2d_draw_circle( self->path.positions[1], 6, self->path.color );
+		gf2d_draw_circle( self->path.positions[2], 6, self->path.color );
+		gf2d_draw_circle( self->path.positions[3], 6, self->path.color );
 	}
 
 }

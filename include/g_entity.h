@@ -3,8 +3,15 @@
 
 #include "gf2d_sprite.h"
 #include "g_collision.h"
-#include "gfc_list.h"
+#include "g_weapon.h"
 
+typedef enum
+{
+	TEAM_FRIEND,
+	TEAM_ENEMY,
+	TEAM_HOSTAGE,
+	TEAM_NULL
+}Team;
 typedef enum
 {
 	ENT_IDLE,
@@ -13,12 +20,14 @@ typedef enum
 	ENT_CHASE,
 	ENT_WANDER,
 	ENT_HIDE,
+	ENT_ACTION,
 	DOOR_OPENED,
 	DOOR_CLOSED,
 	DOOR_DEAD,
 	DOOR_SHOT,
 	DOOR_HAND,
 	DOOR_BLOWN,
+	DOOR_DIALOG,
 	COL_TRUE
 
 }EntityState;
@@ -67,14 +76,14 @@ typedef struct Entity_S
 
 	float					move_speed;
 	float					health;		/**<Current health of entity*/
-	//Weapon					weapon;		/**<Currently held weapon by the entity*/
+	struct Weapon_S			*weapon;		/**<Currently held weapon by the entity*/
 
 	Toggles					toggles;
 	Timers					timers;
 
 	EntityState					state;		/**<Current state of entity, waiting, attacking*/
 	char					*tag;		/**<Tag for naming the entity*/
-	Uint8					team;		/**<Team the entity is on*/
+	Team					team;		/**<Team the entity is on*/
 	struct CollisionCell_S*	cell;		/**<Current cell position of the entity, used for collision detection*/
 
 	void				(*think)(struct Entity_S *self);			/* <pointer to the think function */
@@ -95,6 +104,9 @@ typedef struct Entity_S
 	// Doors!
 	float				interact_radius;
 	Uint32				door_timer;
+	Vector2D			interact_offset;
+	Uint8				door_unlocked;
+	struct Entity_S		*door_ent;
 
 	// AI
 	SDL_Rect			nav_zone;
@@ -202,5 +214,23 @@ void entity_on_collision( Entity *self, CollisionInfo collision );
 */
 void entity_follow_path( Entity *self, Uint32 index, float radius );
 
+/**
+* @brief Get the count of remaining enemies
+* @param Entity in use
+* @param Index of the position to move to
+* @param Radius of position
+*/
+Uint32 entity_get_enemy_count();
 
+/**
+* @brief Get the count of remaining friendlies
+* @param Entity in use
+* @param Index of the position to move to
+* @param Radius of position
+*/
+Uint32 entity_get_friendly_count();
+
+Uint32 entity_get_intel_count();
+
+Entity *entity_get_by_tag( char *tag );
 #endif
