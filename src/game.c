@@ -20,13 +20,16 @@
 #include "c_intel.h"
 
 #include "g_hud.h"
-
+#include "g_menu.h"
 #include "g_weapon.h"
+
+#include "gfc_list.h"
 
 Uint8 g_debug;
 Uint32 g_screen_width;
 Uint32 g_screen_height;
 Uint32 g_time;
+GameState g_state;
 
 int main ( int argc, char* argv[] )
 {
@@ -40,6 +43,7 @@ int main ( int argc, char* argv[] )
     g_screen_width = 1200;
     g_screen_height = 720;
     g_time = 0;
+    g_state = G_PAUSE;
 
     int done = 0;
     const Uint8* keys;
@@ -72,6 +76,8 @@ int main ( int argc, char* argv[] )
     weapon_manager_init ( 128 );
 
     HUD_init();
+
+    menu_manager_init( 16 );
 
     /*demo setup*/
     sprite = gf2d_sprite_load_image ( "images/backgrounds/bg_flat.png" );
@@ -237,12 +243,131 @@ int main ( int argc, char* argv[] )
 
     world_load( "config/asset_list.json" );
 
+    Menu *mNew = menu_new();
+    mNew->tag = "test";
+    Menu *menu = menu_new();
+    menu->tag = "main";
+    menu->enabled = true;
+    menu->background = gf2d_sprite_load_image( "images/gui/background.png" );
+
+    MenuText title;
+    title.text = "PAUSED";
+    title.font = TTF_OpenFont( "fonts/FRADMCN.ttf", 36 );
+    title.position = vector2d( 323.6, 270 );
+    gfc_list_append( menu->labels, &title );
+
+    MenuText title2;
+    title2.text = "OBJECTIVES";
+    title2.font = TTF_OpenFont( "fonts/FRADMCN.ttf", 36 );
+    title2.position = vector2d( 743.8, 270 );
+    gfc_list_append( menu->labels, &title2 );
+
+
+    MenuImage image;
+    image.sprite = gf2d_sprite_load_image( "images/gui/obj_grad.png" );
+    image.position = vector2d( 696, 314 );
+    gfc_list_append( menu->images, &image );
+
+    MenuText obj;
+    obj.text = "Kill all enemies.";
+    obj.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    obj.position = vector2d( 710, 320 );
+    gfc_list_append( menu->labels, &obj );
+    
+
+    MenuText obj2;
+    obj2.text = "Locate all intel.";
+    obj2.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    obj2.position = vector2d( 710, 340 );
+    gfc_list_append( menu->labels, &obj2 );
+    
+
+    MenuText obj3;
+    obj3.text = "Rescue the hostage.";
+    obj3.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    obj3.position = vector2d( 710, 360 );
+    gfc_list_append( menu->labels, &obj3 );
+
+    MenuButton button;
+    button.action = menu_close;
+    button.selected = true;
+    button.label.text = "RESUME";
+    button.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    button.background = gf2d_sprite_load_image( "images/gui/button.png" );
+    button.icon = gf2d_sprite_load_image( "images/gui/selected.png" );
+    button.icon_offset = vector2d( 5, 2 );
+    button.position = vector2d( 279, 317 );
+    button.label.position = vector2d( 30, 0 );
+    gfc_list_append( menu->buttons, &button );
+    menu->current_button = &button;
+
+    MenuButton button2;
+    button2.action = menu_go_to;
+    button2.data = mNew;
+    button2.selected = false;
+    button2.label.text = "EDITOR";
+    button2.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    button2.background = gf2d_sprite_load_image( "images/gui/button.png" );
+    button2.icon = gf2d_sprite_load_image( "images/gui/selected.png" );
+    button2.icon_offset = vector2d( 5, 2 );
+    button2.position = vector2d( 279, 343 );
+    button2.label.position = vector2d( 30, 0);
+    gfc_list_append( menu->buttons, &button2 );
+
+    MenuButton button3;
+    button3.selected = false;
+    button3.label.text = "SETTINGS";
+    button3.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    button3.background = gf2d_sprite_load_image( "images/gui/button.png" );
+    button3.icon = gf2d_sprite_load_image( "images/gui/selected.png" );
+    button3.icon_offset = vector2d( 5, 2 );
+    button3.position = vector2d( 279, 369 );
+    button3.label.position = vector2d( 30, 0 );
+    gfc_list_append( menu->buttons, &button3 );
+
+    MenuButton button4;
+    button4.action = menu_quit;
+    button4.selected = false;
+    button4.label.text = "QUIT";
+    button4.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    button4.background = gf2d_sprite_load_image( "images/gui/button.png" );
+    button4.icon = gf2d_sprite_load_image( "images/gui/selected.png" );
+    button4.icon_offset = vector2d( 5, 2 );
+    button4.position = vector2d( 279, 395 );
+    button4.label.position = vector2d( 30, 0 );
+    gfc_list_append( menu->buttons, &button4 );
+
+    MenuButton button6;
+    button6.selected = false;
+    button6.label.text = "SETTINGS";
+    button6.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    button6.background = gf2d_sprite_load_image( "images/gui/button.png" );
+    button6.icon = gf2d_sprite_load_image( "images/gui/selected.png" );
+    button6.icon_offset = vector2d( 5, 2 );
+    button6.position = vector2d( 279, 369 );
+    button6.label.position = vector2d( 30, 0 );
+    gfc_list_append( mNew->buttons, &button6 );
+
+    MenuButton button5;
+    button5.action = menu_go_back;
+    button5.selected = true;
+    button5.label.text = "BACK";
+    button5.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+    button5.background = gf2d_sprite_load_image( "images/gui/button.png" );
+    button5.icon = gf2d_sprite_load_image( "images/gui/selected.png" );
+    button5.icon_offset = vector2d( 5, 2 );
+    button5.position = vector2d( 279, 395 );
+    button5.label.position = vector2d( 30, 0 );
+    gfc_list_append( mNew->buttons, &button5 );
+    mNew->current_button = &button5;
+
+
 
     Uint32 time = 0;
     Uint32 time2 = 0;
     char text_line_1[32];
     /*main game loop*/
-    while ( !done )
+    while ( g_state != G_STOP )
     {
         SDL_PumpEvents ();   // update SDL's internal event structures
         keys = SDL_GetKeyboardState ( NULL ); // get the keyboard state for this frame
@@ -261,16 +386,20 @@ int main ( int argc, char* argv[] )
             //q->position = vector2d( (float)mx, (float)my );
 
         static_entity_draw_all();
+        entity_manager_draw_all();
+        weapon_manager_draw_all();
+        particle_manager_draw_all();
 
-        entity_manager_draw_all ();
+        if (g_state == G_PAUSE)
+        {
+goto skip_update;
+        }
         entity_manager_update_all ();
         entity_manager_think_all ();
 
-        weapon_manager_draw_all();
         weapon_manager_update_all();
         weapon_manager_think_all();
 
-        particle_manager_draw_all ();
         particle_manager_update_all ();
 
         collision_system_update_all ();
@@ -279,6 +408,7 @@ int main ( int argc, char* argv[] )
             //collision_system_clear();
             entity_manager_update_fixed_all ();
             entity_manager_think_fixed_all ();
+
             particle_manager_update_fixed_all ();
 
             weapon_manager_think_fixed_all();
@@ -286,6 +416,9 @@ int main ( int argc, char* argv[] )
 
             time = g_time;
         }
+
+skip_update:
+
         if ( g_debug )
         {
             collision_system_draw_debug ();
@@ -294,6 +427,40 @@ int main ( int argc, char* argv[] )
         }
        
         HUD_draw();
+        menu_manager_update_all();
+        menu_manager_draw_all();
+
+        /// FROM WEB
+       // SDL_Renderer *renderer = gf2d_graphics_get_renderer();
+       //
+       // SDL_Surface *SurfaceA = IMG_Load( "images/backgrounds/floor.png" ); 
+       // SDL_Surface *SurfaceB = IMG_Load( "images/backgrounds/floor_dark.png" );
+       //
+       // SDL_Texture *TextureA = SDL_CreateTextureFromSurface( renderer, SurfaceA );
+       // SDL_Texture *TextureB = SDL_CreateTextureFromSurface( renderer, SurfaceB );
+       //
+       // SDL_Texture *result = SDL_CreateTexture( renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, 300, 300 );
+       // SDL_SetTextureBlendMode( result, SDL_BLENDMODE_BLEND ); // blend - mod - none - none
+       // SDL_SetRenderTarget( renderer, result );
+       // SDL_SetTextureBlendMode( TextureA, SDL_BLENDMODE_MOD );
+       // SDL_SetTextureBlendMode( TextureB, SDL_BLENDMODE_NONE );
+       // SDL_SetRenderDrawColor( renderer, 0, 0, 0, 0 ); SDL_RenderClear( rende       rer );
+       // SDL_RenderCopy( renderer, TextureB, NULL, NULL ); SDL_RenderCopy( renderer, TextureA, NULL, NULL );
+       // SDL_SetRenderTarget( renderer, NULL ); SDL_SetRenderDrawColor( renderer, 0, 0, 255, 0 );
+       // SDL_RenderClear( renderer );
+       //
+       // SDL_Surface *SurfaceD = IMG_Load( "images/backgrounds/floor_mask.png" );
+       // SDL_Texture *TextureD = SDL_CreateTextureFromSurface( renderer, SurfaceD );
+       // SDL_RenderCopy( renderer, TextureD, NULL, NULL ); 
+       // SDL_RenderCopy( renderer, result, NULL, NULL );
+       //
+       // SDL_RenderPresent( renderer );
+       //
+       // SDL_FreeSurface( SurfaceB );
+       // SDL_FreeSurface( SurfaceD );
+       // SDL_DestroyTexture( TextureA );
+       // SDL_DestroyTexture( TextureB );
+       // SDL_DestroyTexture( TextureD );
         //UI elements last
         //gf2d_sprite_draw(
         //    mouse,
@@ -309,7 +476,7 @@ int main ( int argc, char* argv[] )
         if ( keys[SDL_SCANCODE_Q] ) g_debug = true;
         if ( keys[SDL_SCANCODE_E] ) g_debug = false;
 
-        if ( keys[SDL_SCANCODE_ESCAPE] )done = 1; // exit condition
+        if ( keys[SDL_SCANCODE_ESCAPE] ) menu_open( menu ); // exit condition
         //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
     }
     slog ( "---==== END ====---" );

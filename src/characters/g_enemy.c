@@ -60,8 +60,8 @@ void enemy_think_fixed( Entity* self )
 
 	player = entity_manager_get_by_id( 1 );
 
-	gf2d_draw_line( self->position, player->position, vector4d(255, 0, 0, 50) );
-	gf2d_draw_circle( self->position, self->view_range, vector4d( 255, 0, 255, 255 ) );
+	//gf2d_draw_line( self->position, player->position, vector4d(255, 0, 0, 50) );
+	//gf2d_draw_circle( self->position, self->view_range, vector4d( 255, 0, 255, 255 ) );
 
 	set_visibility( self, player );
 	hit = raycast( self->position, look_at_angle_slope( self->position, player->position ), self->view_range, self->_id, TEAM_ENEMY );
@@ -154,6 +154,8 @@ void debug( Entity *self )
 	gf2d_draw_fill_rect( self->nav_zone, vector4d( 255, 255, 0, 15 ) );
 	gf2d_draw_line( self->position, self->target_position, vector4d( 0, 0, 255, 255 ) );
 	gf2d_draw_circle( self->target_position, 8, vector4d( 0, 0, 255, 255 ) );
+
+	gf2d_draw_circle( self->position, self->view_range, vector4d( 255, 0, 255, 255 ) );
 }
 
 void enemy_collision( Entity *self, CollisionInfo info )
