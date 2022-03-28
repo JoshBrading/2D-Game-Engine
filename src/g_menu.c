@@ -300,6 +300,7 @@ void menu_update_fixed( Menu *self )
 	}
 }
 
+
 void menu_draw( Menu *self )
 {
 	if (!self)return;
@@ -545,7 +546,7 @@ void menu_go_back( Menu *self )
 	self->prev->enabled = true;
 }
 
-void menu_quit( Menu *self )
+void menu_quit( )
 {
 	g_state = G_STOP;
 }
