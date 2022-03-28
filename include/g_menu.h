@@ -15,6 +15,12 @@ typedef struct
 
 typedef struct
 {
+	Sprite *sprite;
+	Vector2D position;
+}MenuImage;
+
+typedef struct
+{
 	Uint8			selected;
 	char			*tag;
 	MenuText		label;
@@ -22,7 +28,6 @@ typedef struct
 
 	Sprite			*background;
 	Sprite			*background_selected;
-	Sprite			*icon;
 	Vector2D		icon_offset;
 
 	void			(*action)( struct Menu_S *self, void *data);
@@ -31,12 +36,13 @@ typedef struct
 	SDL_Rect		bounds;
 }MenuButton;
 
+
+
 typedef struct
 {
-	Sprite *sprite;
-	Vector2D position;
-}MenuImage;
-
+	MenuImage	icon;
+	Vector2D	target_pos;
+}MenuSelector;
 typedef struct Menu_S
 {
 	Uint8			_inuse;
@@ -49,15 +55,24 @@ typedef struct Menu_S
 	List			*buttons;
 	MenuButton		*current_button;
 
+	MenuSelector	*selector_sprite;
+	Vector2D		selector_position;
+	Vector2D		selector_target_pos;
+
 	Sprite			*background;
 
 	struct Menu_S	*prev;
+
 	void			(*update)(struct Menu_S *self);
+	void			(*draw)(struct Menu_S *self);
+	void			(*free)(struct Menu_S *self);
 }Menu;
 
 void menu_manager_init( Uint32 maxMenus );
 
 void menu_manager_close();
+
+Menu *menu_load( char *filename );
 
 Menu *menu_new();
 
@@ -65,9 +80,13 @@ void menu_free( Menu *self );
 
 void menu_update( Menu *self );
 
+void menu_update_fixed( Menu *self );
+
 void menu_draw( Menu *self );
 
 void menu_manager_update_all();
+
+void menu_manager_update_fixed_all();
 
 void menu_manager_draw_all();
 

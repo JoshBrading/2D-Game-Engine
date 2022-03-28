@@ -10,7 +10,7 @@ void world_load( char *filename )
 {
     SJson *json, *wjson;
 
-    sj_enable_debug();
+    //sj_enable_debug();
 
     json = sj_load( filename );
 

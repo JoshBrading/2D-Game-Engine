@@ -1,5 +1,5 @@
-#ifndef __G_STATIC_ENTITY_H__
-#define __G_STATIC_ENTITY_H__
+#ifndef __STATIC_ENTITY_H__
+#define __STATIC_ENTITY_H__
 
 #include "g_entity.h"
 
