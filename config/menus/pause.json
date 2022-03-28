@@ -1,0 +1,106 @@
+{
+  "menu" :
+  {
+    "name" : "pause",
+    "background" : "images/gui/background.png",
+    "select_icon" : "images/gui/selected.png"
+  },
+  "images":
+  [
+    {
+      "sprite":"images/gui/obj_grad.png",
+      "pos_x": 696,
+      "pos_y": 314
+    },
+    {
+      "sprite":"images/gui/obj_grad.png",
+      "pos_x": 696,
+      "pos_y": 314
+    }
+  ],
+  "labels":
+  [
+    {
+      "text":"PAUSED",
+      "font": "fonts/FRADMCN.ttf",
+      "font_size": 36,
+      "pos_x":323.6,
+      "pos_y":270
+    },
+    {
+      "text":"OBJECTIVES",
+      "font": "fonts/FRADMCN.ttf",
+      "font_size": 36,
+      "pos_x":743.8,
+      "pos_y": 270
+    },
+    {
+      "text":"Kill all enemies",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "pos_x":710,
+      "pos_y": 320
+    },
+    {
+      "text":"Locate all intel.",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "pos_x":710,
+      "pos_y": 340
+    },
+    {
+      "text":"Rescue the hostage.",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "pos_x":710,
+      "pos_y":360
+    }
+  ],
+  "buttons":
+  [
+    {
+      "text": "RESUME",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "image": "images/gui/button.png",
+      "icon_offset": [5, 2],
+      "pos_x":279,
+      "pos_y": 317,
+      "action": "menu_close",
+      "action_date": null
+    },
+    {
+      "text": "EDITOR",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "image": "images/gui/button.png",
+      "icon_offset": [5, 2],
+      "pos_x":279,
+      "pos_y": 343,
+      "action": "menu_go_to",
+      "action_date": "editor"
+    },
+    {
+      "text": "SETTINGS",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "image": "images/gui/button.png",
+      "icon_offset": [5, 2],
+      "pos_x":279,
+      "pos_y": 369,
+      "action": "menu_go_to",
+      "action_date": "settings"
+    },
+    {
+      "text": "QUIT",
+      "font": "fonts/arial.ttf",
+      "font_size": 18,
+      "image": "images/gui/button.png",
+      "icon_offset": [5, 2],
+      "pos_x":279,
+      "pos_y": 395,
+      "action": "menu_quit",
+      "action_date": null
+    }
+  ]
+}
