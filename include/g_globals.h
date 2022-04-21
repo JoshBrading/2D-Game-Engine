@@ -5,6 +5,8 @@
 
 typedef enum
 {
+	G_MAIN,
+	G_EDIT,
 	G_RUN,
 	G_PAUSE,
 	G_STOP

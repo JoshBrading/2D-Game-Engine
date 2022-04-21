@@ -25,6 +25,9 @@
 
 #include "gfc_list.h"
 
+#include "g_editor.h"
+#include "m_main.h"
+
 Uint8 g_debug;
 Uint32 g_screen_width;
 Uint32 g_screen_height;
@@ -43,7 +46,7 @@ int main ( int argc, char* argv[] )
     g_screen_width = 1200;
     g_screen_height = 720;
     g_time = 0;
-    g_state = G_PAUSE;
+    g_state = G_MAIN;
 
     int done = 0;
     const Uint8* keys;
@@ -247,24 +250,24 @@ int main ( int argc, char* argv[] )
     mNew->tag = "test";
     Menu *menu = menu_new();
     menu->tag = "main";
-    menu->enabled = true;
+    //menu->enabled = true;
     menu->background = gf2d_sprite_load_image( "images/gui/background.png" );
    
     menu->selector_sprite = gf2d_sprite_load_image( "images/gui/selected.png" );
    
-    menu->selector_target_pos = vector2d(0, 0);
-    menu->selector_position = vector2d(0, 0);
+    menu->selector_target_pos = vector2d( 279, 317 );
+    menu->selector_position = vector2d( 279, 317 );
 
     mNew->background = gf2d_sprite_load_image( "images/gui/background.png" );
     mNew->selector_sprite = gf2d_sprite_load_image( "images/gui/selected.png" );
-    mNew->selector_target_pos = vector2d(0, 0);
-    mNew->selector_position = vector2d(0, 0);
+    mNew->selector_target_pos = vector2d( 279, 317 );
+    mNew->selector_position = vector2d( 279, 317 );
    
-    MenuText title;
-    title.text = "PAUSED";
-    title.font = TTF_OpenFont( "fonts/FRADMCN.ttf", 36 );
-    title.position = vector2d( 323.6, 270 );
-    gfc_list_append( menu->labels, &title );
+    MenuText *title = menu_text_new();
+    title->text = "PAUSED";
+    title->font = TTF_OpenFont( "fonts/FRADMCN.ttf", 36 );
+    title->position = vector2d( 323.6, 270 );
+    gfc_list_append( menu->labels, title );
    
     MenuText title2;
     title2.text = "OBJECTIVES";
@@ -333,7 +336,8 @@ int main ( int argc, char* argv[] )
     gfc_list_append( menu->buttons, &button3 );
    
     MenuButton button4;
-    button4.action = menu_quit;
+    button4.action = menu_g_state_change;
+    button4.data = G_MAIN;
     button4.selected = false;
     button4.label.text = "QUIT";
     button4.label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
@@ -382,6 +386,9 @@ Uint8 m = true;
     Uint32 time = 0;
     Uint32 time2 = 0;
     char text_line_1[32];
+
+    Menu* main_menu = menu_main_load();
+
     /*main game loop*/
     while ( g_state != G_STOP )
     {
@@ -396,10 +403,15 @@ Uint8 m = true;
 
         gf2d_graphics_clear_screen ();// clears drawing buffers
         // all drawing should happen betweem clear_screen and next_frame
-            //backgrounds drawn first
-           // gf2d_sprite_draw_image(sprite,vector2d(0,0));
 
-            //q->position = vector2d( (float)mx, (float)my );
+        if (g_state == G_MAIN)
+        {
+            main_menu->enabled = true;
+        }
+        else
+        {
+            main_menu->enabled = false;
+        }
 
         static_entity_draw_all();
         entity_manager_draw_all();
@@ -435,16 +447,14 @@ Uint8 m = true;
             HUD_draw();
 
         }
-        else if( g_state == G_PAUSE)
-        {
-            menu_manager_update_all();
-            menu_manager_draw_all();
 
-            if (g_time > time + 20)
-            {
-                menu_manager_update_fixed_all();
-                time = g_time;
-            }
+        menu_manager_update_all();
+        menu_manager_draw_all();
+
+        if (g_time > time + 20)
+        {
+            menu_manager_update_fixed_all();
+            time = g_time;
         }
 
 
@@ -505,12 +515,13 @@ Uint8 m = true;
 
         if ( keys[SDL_SCANCODE_T] && m)
         {
-           // Menu *menu = menu_load( "config/menus/pause.json" );
-           // if (menu) menu->enabled = true;
+           if (menu) menu->enabled = false;
+           editor_load();
             m = false;
         }
 
-        if ( keys[SDL_SCANCODE_ESCAPE] ) menu_open( menu ); // exit condition
+        if ( keys[SDL_SCANCODE_ESCAPE] && !menu->enabled && g_state == G_RUN) menu_open( menu ); // exit condition
+        //else if ( keys[SDL_SCANCODE_ESCAPE] && menu->enabled) menu_close( menu ); // exit condition
         //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
     }
     slog ( "---==== END ====---" );

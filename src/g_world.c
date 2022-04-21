@@ -120,7 +120,7 @@ void world_load( char *filename )
             Uint32 frame_h, frame_w, frames_per_line, height, width, hit_offset_x, hit_offset_y, x, y, interact_x, interact_y;
             float speed, range, health;
 
-            Entity *door;
+            Entity *door = NULL;
             door = door_new();
 
             sj_get_integer_value( sj_object_get_value( data, "height" ), &height );

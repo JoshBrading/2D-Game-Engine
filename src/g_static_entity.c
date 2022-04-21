@@ -67,6 +67,17 @@ void static_entity_free( StaticEntity *self )
     memset( self, 0, sizeof( self ) );
 }
 
+void static_entity_manager_clear()
+{
+    for (int i = 0; i < static_entity_manager.static_entity_count; i++)
+    {
+        if (static_entity_manager.static_entity_list[i]._inuse)
+        {
+            static_entity_free( &static_entity_manager.static_entity_list[i] );
+        }
+    }
+}
+
 void static_entity_draw( StaticEntity *self )
 {
     if (!self)return;

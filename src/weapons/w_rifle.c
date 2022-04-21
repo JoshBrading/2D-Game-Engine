@@ -22,6 +22,7 @@ Weapon *rifle_new()
 	wep->damage = 10;
 
 	wep->impact = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );
+
 	wep->impact->frame_count = 32;
 
 	wep->timer = g_time;

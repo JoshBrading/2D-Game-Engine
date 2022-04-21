@@ -8,6 +8,7 @@
 static void menu_draw_text( MenuText *text );
 static void menu_draw_button( MenuButton *button );
 static void menu_draw_text_with_offset( MenuText text, Vector2D offset );
+static void menu_draw_dropdown( MenuDropdown *dropdown );
 static MenuButton *menu_next_button( Menu *self, MenuButton *current );
 static MenuButton *menu_prev_button( Menu *self, MenuButton *current );
 static void menu_load_images( Menu *menu, SJson *images );
@@ -211,24 +212,83 @@ Menu *menu_new()
 			menu_manager.menu_list[i].images = gfc_list_new();
 			menu_manager.menu_list[i].buttons = gfc_list_new();
 			menu_manager.menu_list[i].labels = gfc_list_new();
+			menu_manager.menu_list[i].dropdowns = gfc_list_new();
+
+			menu_manager.menu_list[i].nav_btn_ctx = menu_manager.menu_list[i].buttons;
 
 			return (&menu_manager.menu_list[i]);
 		}
 	}
-	slog( "EntityNew: No free space" );
+	slog( "MenuNew: No free space" );
 	return NULL;
 }
 
-void menu_link_all()
+MenuButton *menu_button_new()
 {
+	MenuButton *button = malloc( sizeof( MenuButton ) );
+	if (!button)
+	{
+		slog( "Failed to allocate button" );
+		return NULL;
+	}
+	button->action = NULL;
+	button->selected = false;
+	button->label.text = "Sample Button";
+	button->label.font = TTF_OpenFont( "fonts/arial.ttf", 18 );
+	button->label.position = vector2d( 30, 0 );
+	button->background = gf2d_sprite_load_image( "images/gui/button.png" );
+	button->icon_offset = vector2d( 5, 2 );
 
+	return button;
+}
+
+MenuText *menu_text_new()
+{
+	MenuText *text = malloc( sizeof( MenuText ) );
+	if (!text)
+	{
+		slog( "Failed to allocate text" );
+		return NULL;
+	}
+
+	text->text = "Sample Text";
+	text->font = TTF_OpenFont( "fonts/FRADMCN.ttf", 36 );
+	return text;
+}
+
+MenuImage *menu_image_new()
+{
+	MenuImage *image = malloc( sizeof( MenuImage ) );
+	if (!image)
+	{
+		slog( "Failed to allocate image" );
+		return NULL;
+	}
+	return image;
+}
+
+MenuDropdown *menu_dropdown_new()
+{
+	MenuDropdown *dropdown = malloc( sizeof( MenuDropdown ) );
+	if (!dropdown)
+	{
+		slog( "Failed to allocate dropdown" );
+		return NULL;
+	}
+
+	dropdown->buttons = gfc_list_new();
+	dropdown->offset = vector2d( 0, 0 );
+
+	dropdown->underlay.sprite = gf2d_sprite_load_image( "images/gui/50p_dim.png" );
+	dropdown->underlay.position = vector2d( 0, 0 );
+	return dropdown;
 }
 
 void menu_free( Menu *self )
 {
 	if (!self)
 	{
-		slog( "EntityFree: Entity does not exist" );
+		slog( "MenuFree: Menu does not exist" );
 		return;
 	}
 	if (self->background)
@@ -336,7 +396,7 @@ void menu_draw( Menu *self )
 							  0 );
 		}
 	}
-
+	
 	if (self->labels)
 	{
 		for (int i = 0; i < self->labels->count; i++)
@@ -346,7 +406,7 @@ void menu_draw( Menu *self )
 			menu_draw_text( label );
 		}
 	}
-
+	
 	if (self->buttons)
 	{
 		for (int i = 0; i < self->buttons->count; i++)
@@ -357,6 +417,16 @@ void menu_draw( Menu *self )
 		}
 	}
 
+	if (self->dropdowns)
+	{
+		for (int i = 0; i < self->dropdowns->count; i++)
+		{
+			MenuDropdown *dropdown = (MenuDropdown *)self->dropdowns->elements[i].data;
+			if (!dropdown) return;
+			menu_draw_dropdown( dropdown );
+		}
+	}
+	
 	if (self->selector_sprite)
 	{
 		gf2d_sprite_draw( self->selector_sprite,
@@ -418,15 +488,15 @@ void menu_draw_text( MenuText *text )
 	if (!text->font) return;
 	SDL_Color c = { 255, 255, 255 };
 	SDL_Rect rect = { text->position.x, text->position.y, 0, 0 };
-
+	
 	surface = TTF_RenderText_Blended( text->font, text->text, c );
 	texture = SDL_CreateTextureFromSurface( renderer, surface );
-
+	
 	rect.w = surface->w;
 	rect.h = surface->h;
-
+	
 	SDL_RenderCopy( renderer, texture, NULL, &rect );
-
+	
 	SDL_FreeSurface( surface );
 	SDL_DestroyTexture( texture );
 }
@@ -440,9 +510,39 @@ void menu_draw_text_with_offset( MenuText text, Vector2D offset )
 	menu_draw_text( &text );
 }
 
+
+void menu_draw_dropdown( MenuDropdown *dropdown )
+{
+	if (!dropdown) return;
+	if (!dropdown->active) return;
+	if (!dropdown->label.text) return;
+	if (!dropdown->label.font) return;
+//	menu_draw_text_with_offset( dropdown->label, dropdown->offset );
+	if (dropdown->underlay.sprite)
+	{
+		gf2d_sprite_draw( dropdown->underlay.sprite,
+						  dropdown->underlay.position,
+						  NULL,
+						  NULL,
+						  NULL,
+						  NULL,
+						  NULL,
+						  0 );
+	}
+	for (int i = 0; i < dropdown->buttons->count; i++)
+	{
+		MenuButton *button = (MenuButton *)dropdown->buttons->elements[i].data;
+		if (!button) return;
+		menu_draw_button( button );
+	}
+
+
+}
+
 void menu_draw_button( MenuButton *button )
 {
 	if (!button)return;
+	if (!button->background) return;
 	gf2d_sprite_draw( button->background,
 					  button->position,
 					  NULL,
@@ -452,19 +552,6 @@ void menu_draw_button( MenuButton *button )
 					  NULL,
 					  0 );
 
-	//if (button->selected)
-	//{
-	//	Vector2D tmp;
-	//	vector2d_add( tmp, button->position, button->icon_offset );
-	//	gf2d_sprite_draw( button->icon,
-	//					  tmp,
-	//					  NULL,
-	//					  NULL,
-	//					  NULL,
-	//					  NULL,
-	//					  NULL,
-	//					  0 );
-	//}
 	menu_draw_text_with_offset( button->label, button->position );
 }
 
@@ -472,15 +559,15 @@ MenuButton *menu_next_button( Menu *self, MenuButton* current )
 {
 	if (!self) return;
 	if (!current) return;
-	Uint32 index = gfc_list_get_item_index( self->buttons, current ) + 1;
+	Uint32 index = gfc_list_get_item_index( self->nav_btn_ctx, current ) + 1;
 	MenuButton *next;
-	if (index < gfc_list_get_count( self->buttons ))
+	if (index < gfc_list_get_count( self->nav_btn_ctx ))
 	{
-		next = gfc_list_get_nth( self->buttons, index);
+		next = gfc_list_get_nth( self->nav_btn_ctx, index );
 	}
 	else
 	{
-		next = gfc_list_get_nth( self->buttons, 0 );
+		next = gfc_list_get_nth( self->nav_btn_ctx, 0 );
 	}
 	if (!next) return NULL;
 
@@ -494,16 +581,16 @@ MenuButton *menu_prev_button( Menu *self, MenuButton *current )
 {
 	if (!self) return;
 	if (!current) return;
-	Uint32 index = gfc_list_get_item_index( self->buttons, current );
+	Uint32 index = gfc_list_get_item_index( self->nav_btn_ctx, current );
 	slog( "%i", index );
 	MenuButton *next;
 	if (index > 0)
 	{
-		next = gfc_list_get_nth( self->buttons, index - 1);
+		next = gfc_list_get_nth( self->nav_btn_ctx, index - 1);
 	}
 	else
 	{
-		next = gfc_list_get_nth( self->buttons, self->buttons->count - 1);
+		next = gfc_list_get_nth( self->nav_btn_ctx, self->nav_btn_ctx->count - 1);
 	}
 
 	if (!next) return NULL;
@@ -546,7 +633,34 @@ void menu_go_back( Menu *self )
 	self->prev->enabled = true;
 }
 
+void menu_activate_dropdown( Menu* self, MenuDropdown *dropdown )
+{
+	dropdown->active = true;
+	
+	self->prev_button = self->current_button;
+	self->current_button = dropdown->current_button;
+	self->nav_btn_ctx = dropdown->buttons;
+}
+
+void menu_deactivate_dropdown( Menu* self, MenuDropdown *dropdown )
+{
+	dropdown->active = false;
+
+	self->current_button = self->prev_button;
+	self->nav_btn_ctx = self->buttons;
+}
+
 void menu_quit( )
 {
 	g_state = G_STOP;
+}
+
+void menu_g_state_run()
+{
+	g_state = G_RUN;
+}
+
+void menu_g_state_change( Menu *self, int state )
+{
+	g_state = state;
 }

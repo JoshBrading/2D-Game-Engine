@@ -50,6 +50,11 @@ StaticEntity *static_entity_new( );
 void static_entity_free( StaticEntity *self );
 
 /**
+ * @brief call free on all static entities
+ */
+void static_entity_manager_clear();
+
+/**
  * @brief Draw a static entity in the current frame
  * @param self the static entity in question
  */
