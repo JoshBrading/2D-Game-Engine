@@ -637,8 +637,10 @@ void menu_activate_dropdown( Menu* self, MenuDropdown *dropdown )
 {
 	dropdown->active = true;
 	
-	self->prev_button = self->current_button;
+	//self->prev_button = self->current_button;
+	dropdown->prev_button = self->current_button;
 	self->current_button = dropdown->current_button;
+	dropdown->prev_btn_list = self->nav_btn_ctx;
 	self->nav_btn_ctx = dropdown->buttons;
 }
 
@@ -646,8 +648,8 @@ void menu_deactivate_dropdown( Menu* self, MenuDropdown *dropdown )
 {
 	dropdown->active = false;
 
-	self->current_button = self->prev_button;
-	self->nav_btn_ctx = self->buttons;
+	self->current_button = dropdown->prev_button;
+	self->nav_btn_ctx = dropdown->prev_btn_list;
 }
 
 void menu_quit( )

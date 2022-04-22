@@ -41,7 +41,9 @@ typedef struct MenuDropdown_S
 	Uint8		active;
 	MenuText	label;
 	List		*buttons;
+	List		*prev_btn_list;
 	MenuButton	*current_button;
+	MenuButton	*prev_button;
 	Vector2D	offset; // unused... for now...
 
 	MenuImage	underlay; // Used for dimming background
@@ -65,7 +67,6 @@ typedef struct Menu_S
 	List			*buttons; /**<A pointer to a list of MenuButton*/
 	List			*dropdowns; /**<A pointer to a list of MenuDropdown*/
 	MenuButton		*current_button; /**<A pointer to the current MenuButton*/
-	MenuButton		*prev_button; /**<A pointer to the previous MenuButton*/
 
 	Sprite			*selector_sprite; /**<A pointer to the sprite of the selector for this menu*/
 	Vector2D		selector_position; /**<Current position of the selector*/

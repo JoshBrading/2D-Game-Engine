@@ -121,3 +121,8 @@ Menu* editor_load()
     gfc_list_append( menu->buttons, btn_quit );
 
 }
+
+void editor_instantiate_entity( Menu* self, void* data )
+{
+       
+}
