@@ -29,30 +29,32 @@ void entity_manager_init( Uint32 maxEntities )
 		return;
 	}
 	entity_manager.entity_count = maxEntities;
+	entity_manager.debug = false;
 	atexit( entity_manager_close );
 	slog( "EntityManager: Initialized" );
 }
 
 void entity_manager_draw_all() // Make this better in the future...
 {
-	for (int i = 0; i < entity_manager.entity_count; i++)
-	{
-		if (entity_manager.entity_list[i]._inuse)
-		{
-			if(strcmp( entity_manager.entity_list[i].tag, "door") == 0)
-				entity_draw( &entity_manager.entity_list[i] );
-		}
-	}
+	//for (int i = 0; i < entity_manager.entity_count; i++)
+	//{
+	//	if (entity_manager.entity_list[i]._inuse)
+	//	{
+	//		if(strcmp( entity_manager.entity_list[i].tag, "door") == 0)
+	//			entity_draw( &entity_manager.entity_list[i] );
+	//	}
+	//}
 
 	for (int i = 0; i < entity_manager.entity_count; i++)
 	{
 		if (entity_manager.entity_list[i]._inuse)
 		{
-			if(strcmp( entity_manager.entity_list[i].tag, "door" ) != 0)
+			//if(strcmp( entity_manager.entity_list[i].tag, "door" ) != 0)
 				entity_draw( &entity_manager.entity_list[i] );
 		}
 	}
 
+	if (entity_manager.debug) entity_manager_draw_debug();
 }
 
 void entity_manager_draw_debug()
@@ -66,7 +68,6 @@ void entity_manager_draw_debug()
 				SDL_Rect rectToDraw = { entity_manager.entity_list[i].bounds.x, entity_manager.entity_list[i].bounds.y, entity_manager.entity_list[i].bounds.w, entity_manager.entity_list[i].bounds.h };
 				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 255, 0, 255 ) );
 			}
-
 		}
 	}
 }
@@ -241,7 +242,7 @@ void entity_update( Entity *self )
 	}
 	if (self->update)self->update( self );
 
-	if (g_debug && self->drawDebug) self->drawDebug( self );
+	if (entity_manager.debug && self->drawDebug) self->drawDebug( self );
 
 }
 
@@ -419,4 +420,14 @@ Entity *entity_get_by_tag( char *tag )
 Entity *entity_manager_get_player()
 {
 	return entity_get_by_tag( "player" ); // Update to use ID
+}
+
+void entity_manager_enable_debug() 
+{
+	entity_manager.debug = true;
+}
+
+void entity_manager_disable_debug() 
+{
+	entity_manager.debug = false;
 }

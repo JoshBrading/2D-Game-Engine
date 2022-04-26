@@ -29,6 +29,7 @@
 #include "g_editor.h"
 #include "m_main.h"
 #include "m_pause.h"
+#include "m_debug.h"
 
 #include "g_light.h"
 
@@ -253,7 +254,7 @@ int main ( int argc, char* argv[] )
 
     //world_load( "config/asset_list.json" );
 
-
+    light_init();
 Uint8 m = true;
 
     Uint32 time = 0;
@@ -262,6 +263,7 @@ Uint8 m = true;
 
     Menu *main_menu = menu_main_load();
     Menu *pause = menu_pause_load();
+    Menu* debug = menu_debug_load();
     /*main game loop*/
     while ( g_state != G_STOP )
     {
@@ -323,6 +325,9 @@ Uint8 m = true;
 
         }
 
+        light_update();
+
+
         menu_manager_update_all();
         menu_manager_draw_all();
 
@@ -339,7 +344,6 @@ Uint8 m = true;
             static_entity_manager_draw_debug();
             entity_manager_draw_debug ();
 
-            light_update();
 
         }
 
@@ -349,6 +353,7 @@ Uint8 m = true;
         if ( keys[SDL_SCANCODE_E] ) g_debug = false;
 
         if ( keys[SDL_SCANCODE_ESCAPE] && !pause->enabled && g_state == G_RUN) menu_open( pause ); // exit condition
+        if ( keys[SDL_SCANCODE_GRAVE] && !debug->enabled && g_state == G_RUN) menu_open( debug ); // exit condition
         //else if ( keys[SDL_SCANCODE_ESCAPE] && menu->enabled) menu_close( menu ); // exit condition
         //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
     }

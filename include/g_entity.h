@@ -125,6 +125,8 @@ typedef struct
 	Entity *entity_list;
 	Uint32	entity_count;
 
+	Uint8 debug;
+
 }EntityManager;
 
 /**
@@ -235,4 +237,8 @@ Uint32 entity_get_intel_count();
 Entity *entity_get_by_tag( char *tag );
 
 Entity *entity_manager_get_player();
+
+void entity_manager_enable_debug();
+
+void entity_manager_disable_debug();
 #endif
