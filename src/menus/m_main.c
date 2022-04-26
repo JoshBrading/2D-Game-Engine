@@ -1,7 +1,9 @@
 #include "m_main.h"
 #include "g_globals.h"
 #include "g_editor.h"
-void main_menu_level_start( Menu *self );
+#include "g_manager.h"
+
+void main_menu_level_start( Menu *self, char* level_name );
 MenuDropdown* main_load_misison_drp(Menu* self);
 MenuDropdown* main_load_loadout_drp(Menu* self);
 
@@ -47,7 +49,7 @@ Menu *menu_main_load()
 
     MenuButton *btn_edit = menu_button_new();
     btn_edit->label.text = "EDITOR";
-    btn_edit->action = editor_load;
+    btn_edit->action = game_load_editor;
     btn_edit->position = vector2d( 128, 369 );
     gfc_list_append( menu->buttons, btn_edit );
 
@@ -60,10 +62,12 @@ Menu *menu_main_load()
 	return menu;
 }
 
-void main_menu_level_start( Menu* self )
+void main_menu_level_start( Menu* self, char* level_name )
 {
     self->enabled = false;
     menu_g_state_change( self, G_RUN);
+
+    game_load_mission( level_name );
 }
 
 MenuDropdown *main_load_misison_drp(Menu* self)
@@ -76,6 +80,7 @@ MenuDropdown *main_load_misison_drp(Menu* self)
     MenuButton* btn_drp_lvl1 = menu_button_new();
     btn_drp_lvl1->label.text = "LEVEL 1";
     btn_drp_lvl1->action = main_menu_level_start;
+    btn_drp_lvl1->data = "config/asset_list.json";
     btn_drp_lvl1->position = vector2d(332, 317);
     gfc_list_append(drp_level_select->buttons, btn_drp_lvl1);
     drp_level_select->current_button = btn_drp_lvl1;
@@ -139,3 +144,4 @@ MenuDropdown *main_load_loadout_drp(Menu* self)
 
     return drop;
 }
+

@@ -200,8 +200,8 @@
         {
             "name":"Door 10x50 (Interactable)",
             "type":"wall",
-            "isStatic": false,
-            "sprite":"images/scenery/door_use.png",
+            "isStatic": true,
+            "sprite":"images/scenery/door_test.png",
             "collisionType":"box",
             "hit_off_x": 0,
             "hit_off_y": 0,

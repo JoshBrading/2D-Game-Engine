@@ -216,6 +216,11 @@ Menu *menu_new()
 
 			menu_manager.menu_list[i].nav_btn_ctx = menu_manager.menu_list[i].buttons;
 
+			menu_manager.menu_list[i].hover_sfx = gfc_sound_load( "audio/SFX_button.mp3", 1, 0 );
+			menu_manager.menu_list[i].click_sfx = gfc_sound_load( "audio/SFX_button_click.mp3", 1, 1 );
+			menu_manager.menu_list[i].open_sfx = gfc_sound_load( "audio/SFX_dropdown.mp3", 1, 2 );
+			menu_manager.menu_list[i].close_sfx = gfc_sound_load( "audio/SFX_dropdown_close.mp3", 1, 3 );
+
 			return (&menu_manager.menu_list[i]);
 		}
 	}
@@ -331,6 +336,8 @@ void menu_update( Menu *self )
 		if (keys[SDL_SCANCODE_RETURN])
 		{
 			if (self->current_button->action) self->current_button->action( self, self->current_button->data );
+
+			gfc_sound_play( self->click_sfx, 0, 1, -1, -1 );
 			moved = true;
 		}
 		
@@ -575,6 +582,8 @@ MenuButton *menu_next_button( Menu *self, MenuButton* current )
 	next->selected = true;
 
 	self->current_button = next;
+
+	gfc_sound_play( self->hover_sfx, 0, 1, -1, -1 );
 }
 
 MenuButton *menu_prev_button( Menu *self, MenuButton *current )
@@ -598,6 +607,8 @@ MenuButton *menu_prev_button( Menu *self, MenuButton *current )
 	next->selected = true;
 
 	self->current_button = next;
+	gfc_sound_play( self->hover_sfx, 0, 1, -1, -1 );
+
 }
 
 void menu_close( Menu *self )
@@ -605,6 +616,21 @@ void menu_close( Menu *self )
 	if(!self)return;
 	self->enabled = false;
 	g_state = G_RUN;
+
+	gfc_sound_play( self->close_sfx, 0, 1, -1, -1 );
+}
+
+void menu_manager_close_all()
+{
+	int i;
+	for (i = 0; i < menu_manager.menu_count; i++)
+	{
+		if (!menu_manager.menu_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		menu_close( &menu_manager.menu_list[i] );
+	}
 }
 
 void menu_open( Menu *self )
@@ -612,6 +638,8 @@ void menu_open( Menu *self )
 	if(!self)return;
 	self->enabled = true;
 	g_state = G_PAUSE;
+
+	gfc_sound_play( self->open_sfx, 0, 1, -1, -1 );
 }
 
 void menu_go_to( Menu *self, Menu *next )
@@ -642,6 +670,8 @@ void menu_activate_dropdown( Menu* self, MenuDropdown *dropdown )
 	self->current_button = dropdown->current_button;
 	dropdown->prev_btn_list = self->nav_btn_ctx;
 	self->nav_btn_ctx = dropdown->buttons;
+
+	gfc_sound_play( self->open_sfx, 0, 1, -1, -1 );
 }
 
 void menu_deactivate_dropdown( Menu* self, MenuDropdown *dropdown )
@@ -650,6 +680,8 @@ void menu_deactivate_dropdown( Menu* self, MenuDropdown *dropdown )
 
 	self->current_button = dropdown->prev_button;
 	self->nav_btn_ctx = dropdown->prev_btn_list;
+
+	gfc_sound_play( self->close_sfx, 0, 1, -1, -1 );
 }
 
 void menu_quit( )
@@ -665,4 +697,20 @@ void menu_g_state_run()
 void menu_g_state_change( Menu *self, int state )
 {
 	g_state = state;
+}
+
+Menu *menu_manager_get_by_tag( char *tag )
+{
+	int i;
+	for (i = 0; i < menu_manager.menu_count; i++)
+	{
+		if (!menu_manager.menu_list[i]._inuse)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		if (strcmp( menu_manager.menu_list[i].tag, tag ) == 0)
+		{
+			return &menu_manager.menu_list[i];
+		}
+	}
 }

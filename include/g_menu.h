@@ -5,6 +5,7 @@
 #include <SDL_ttf.h>
 #include "gf2d_sprite.h"
 #include "gfc_list.h"
+#include "gfc_audio.h"
 
 typedef struct MenuText_S
 {
@@ -55,12 +56,30 @@ typedef struct MenuSelector_S
 	Vector2D	target_pos; /**<Target position to move the selector to*/
 }MenuSelector;
 
+typedef struct MenuSounds_S
+{
+	Sound *button_hover;
+	Sound *button_select;
+
+	Sound *dropdown_open;
+	Sound *dropdown_close;
+
+	Sound *menu_open;
+	Sound *menu_close;
+}MenuSounds;
 typedef struct Menu_S
 {
 	Uint8			_inuse; /**<Flag to check if Menu is being used*/
 	Uint8			enabled; /**<Flag to check if Menu is enabled/visible*/
 
 	char			*tag; /**<Unique tag used for searching menus from JSON*/
+
+	MenuSounds		*sfx;
+
+	Sound *hover_sfx;
+	Sound *click_sfx;
+	Sound *open_sfx;
+	Sound *close_sfx;
 
 	List			*labels; /**<A pointer to a list of MenuText*/
 	List			*images; /**<A pointer to a list of MenuImage*/
@@ -178,6 +197,17 @@ void menu_manager_draw_all();
 void menu_close( Menu *self );
 
 /**
+ * @brief Hide all menus
+ */
+void menu_manager_close_all();
+
+/**
+ * @brief Unhide the provided menu
+ * @param self the menu to unhide
+ */
+void menu_open( Menu *self );
+
+/**
  * @brief switch to the next menu
  * @param self the menu to hide
  * @param next the menu to unhide
@@ -215,4 +245,5 @@ void menu_g_state_run();
 */
 void menu_g_state_change( Menu *self, int state );
 
+Menu *menu_manager_get_by_tag( char *tag );
 #endif // !__G_MENU_H__

@@ -415,3 +415,8 @@ Entity *entity_get_by_tag( char *tag )
 	}
 	return NULL;
 }
+
+Entity *entity_manager_get_player()
+{
+	return entity_get_by_tag( "player" ); // Update to use ID
+}

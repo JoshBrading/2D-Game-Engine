@@ -233,4 +233,6 @@ Uint32 entity_get_friendly_count();
 Uint32 entity_get_intel_count();
 
 Entity *entity_get_by_tag( char *tag );
+
+Entity *entity_manager_get_player();
 #endif

@@ -10,6 +10,7 @@
 #include "gf2d_draw.h"
 #include "g_globals.h"
 #include "gfc_vector.h"
+#include "g_func.h"
 
 typedef struct
 {
@@ -697,4 +698,11 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 	}
 
 	return hit;
+}
+
+HitObj raycast_between( Vector2D origin, Vector2D target, float max_distance, Uint32 id_mask, Uint32 team_mask )
+{
+	Vector2D dir = look_at_angle_slope( origin, target );
+
+	return raycast( origin, dir, max_distance, id_mask, team_mask );
 }
