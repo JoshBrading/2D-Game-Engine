@@ -2,6 +2,8 @@
 #include "g_globals.h"
 #include "g_editor.h"
 #include "g_manager.h"
+#include "simple_json.h"
+#include "simple_logger.h"
 
 void main_menu_level_start( Menu *self, char* level_name );
 MenuDropdown* main_load_misison_drp(Menu* self);
@@ -110,27 +112,42 @@ MenuDropdown *main_load_misison_drp(Menu* self)
 
 MenuDropdown *main_load_loadout_drp(Menu* self)
 {
+    //if (!self) return;
 
+    SJson* json;
+
+    char* primary_weapon_txt;
+    char* secondary_weapon_txt;
+    char* equipment_txt;
+
+
+    sj_enable_debug();
+    json = sj_load("config/characters/companion_1.json");
+
+    primary_weapon_txt = sj_get_string_value(sj_object_get_value(json, "primary_weapon"));
+    secondary_weapon_txt = sj_get_string_value(sj_object_get_value(json, "secondary_weapon"));
+    equipment_txt = sj_get_string_value(sj_object_get_value(json, "equipment"));
+    
     MenuDropdown* drop = menu_dropdown_new();
     drop->active = false;
     drop->label.position = vector2d(0, 128);
 
-    MenuButton* btn_drp_lvl1 = menu_button_new();
-    btn_drp_lvl1->label.text = "RIFLE";
-    btn_drp_lvl1->action = main_menu_level_start;
-    btn_drp_lvl1->position = vector2d(332, 343);
-    gfc_list_append(drop->buttons, btn_drp_lvl1);
-    drop->current_button = btn_drp_lvl1;
+    MenuButton* primary_weapon_btn = menu_button_new();
+    primary_weapon_btn->label.text = primary_weapon_txt;
+    primary_weapon_btn->action = main_menu_level_start;
+    primary_weapon_btn->position = vector2d(332, 343);
+    gfc_list_append(drop->buttons, primary_weapon_btn);
+    drop->current_button = primary_weapon_btn;
 
-    MenuButton* btn_drp_lvl2 = menu_button_new();
-    btn_drp_lvl2->label.text = "PISTOL";
-    btn_drp_lvl2->position = vector2d(332, 369);
-    gfc_list_append(drop->buttons, btn_drp_lvl2);
+    MenuButton* secondary_weapon_btn = menu_button_new();
+    secondary_weapon_btn->label.text = secondary_weapon_txt;
+    secondary_weapon_btn->position = vector2d(332, 369);
+    gfc_list_append(drop->buttons, secondary_weapon_btn);
 
-    MenuButton* btn_drp_lvl3 = menu_button_new();
-    btn_drp_lvl3->label.text = "FLASHLIGHT";
-    btn_drp_lvl3->position = vector2d(332, 395);
-    gfc_list_append(drop->buttons, btn_drp_lvl3);
+    MenuButton* equipment_btn = menu_button_new();
+    equipment_btn->label.text = equipment_txt;
+    equipment_btn->position = vector2d(332, 395);
+    gfc_list_append(drop->buttons, equipment_btn);
 
     MenuButton* btn_drp_rtrn = menu_button_new();
     btn_drp_rtrn->label.text = "CONFIRM";

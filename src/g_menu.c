@@ -591,7 +591,6 @@ MenuButton *menu_prev_button( Menu *self, MenuButton *current )
 	if (!self) return;
 	if (!current) return;
 	Uint32 index = gfc_list_get_item_index( self->nav_btn_ctx, current );
-	slog( "%i", index );
 	MenuButton *next;
 	if (index > 0)
 	{

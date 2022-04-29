@@ -75,6 +75,13 @@ int main ( int argc, char* argv[] )
         0 );
     gf2d_graphics_set_frame_delay ( 0 ); // Changed from 16
     gf2d_sprite_init ( 128 );
+
+    Sprite* splash;
+    splash = gf2d_sprite_load_image("images/splash.png");
+    gf2d_graphics_clear_screen();
+    gf2d_sprite_draw_image(splash, vector2d(0, 0));
+    gf2d_grahics_next_frame();
+
     SDL_ShowCursor ( SDL_ENABLE );
 
     gfc_audio_init( 32, 1, 1, 4, true, false );
