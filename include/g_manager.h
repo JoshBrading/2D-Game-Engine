@@ -15,4 +15,10 @@ void game_quit();
 
 void game_state_change( int new_state );
 
+void game_update();
+
+void game_timing_enable_debug();
+
+void game_timing_disable_debug();
+
 #endif // !__G_MANAGER_H__

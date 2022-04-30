@@ -11,6 +11,7 @@
 #include "g_static_entity.h"
 #include "g_particle.h"
 #include "g_collision.h"
+#include "g_manager.h"
 #include "g_test_bounce_ball.h"
 
 #include "g_hostage.h"
@@ -36,7 +37,11 @@
 Uint8 g_debug;
 Uint32 g_screen_width;
 Uint32 g_screen_height;
-Uint32 g_time;
+Uint32 g_time; 
+
+Uint32 g_update_time;
+Uint32 g_update_time_fixed;
+
 GameState g_state;
 
 int main ( int argc, char* argv[] )
@@ -52,6 +57,9 @@ int main ( int argc, char* argv[] )
     g_screen_height = 700;
     g_time = 0;
     g_state = G_MAIN;
+
+    g_update_time_fixed = 0;
+    g_update_time = 0;
 
     int done = 0;
     const Uint8* keys;
@@ -73,14 +81,14 @@ int main ( int argc, char* argv[] )
         700,
         vector4d ( 0, 0, 0, 255 ),
         0 );
-    gf2d_graphics_set_frame_delay ( 0 ); // Changed from 16
+    gf2d_graphics_set_frame_delay ( 2 ); // Changed from 16
     gf2d_sprite_init ( 128 );
 
-    Sprite* splash;
-    splash = gf2d_sprite_load_image("images/splash.png");
-    gf2d_graphics_clear_screen();
-    gf2d_sprite_draw_image(splash, vector2d(0, 0));
-    gf2d_grahics_next_frame();
+    Sprite* splash;                                         //
+    splash = gf2d_sprite_load_image("images/splash.png");   //
+    gf2d_graphics_clear_screen();                           //  Questionable splashscreen code
+    gf2d_sprite_draw_image(splash, vector2d(0, 0));         //
+    gf2d_grahics_next_frame();                              //
 
     SDL_ShowCursor ( SDL_ENABLE );
 
@@ -271,6 +279,7 @@ Uint8 m = true;
     Menu *main_menu = menu_main_load();
     Menu *pause = menu_pause_load();
     Menu* debug = menu_debug_load();
+
     /*main game loop*/
     while ( g_state != G_STOP )
     {
@@ -313,8 +322,7 @@ Uint8 m = true;
             collision_system_update_all();
 
 
-
-            if (g_time > time + 20) // Run every 10ms
+            if (g_time > time + 20) // Run every 20ms
             {
                 //collision_system_clear();
                 entity_manager_update_fixed_all();
@@ -324,6 +332,7 @@ Uint8 m = true;
 
                 weapon_manager_think_fixed_all();
 
+                g_update_time_fixed++;
 
                 time = g_time;
             }
@@ -341,18 +350,20 @@ Uint8 m = true;
         if (g_time > time + 20)
         {
             menu_manager_update_fixed_all();
+            g_update_time_fixed++;
             time = g_time;
         }
+        g_update_time++;
+        game_update();
 
-
-        if ( g_debug )
-        {
-            collision_system_draw_debug ();
-            static_entity_manager_draw_debug();
-            entity_manager_draw_debug ();
-
-
-        }
+      //  if ( g_debug )
+      //  {
+      //      collision_system_draw_debug ();
+      //      static_entity_manager_draw_debug();
+      //      entity_manager_draw_debug ();
+      //
+      //
+      //  }
 
         gf2d_grahics_next_frame ();// render current draw frame and skip to the next frame
 

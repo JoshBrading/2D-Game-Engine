@@ -11,7 +11,7 @@ void HUD_init()
 	TTF_Init();
 
 	hud.renderer = gf2d_graphics_get_renderer();
-	hud.font = TTF_OpenFont( "fonts/arial.ttf", 32 );
+	hud.font = TTF_OpenFont( "fonts/arial.ttf", 16 );
 }
 
 void HUD_draw()
@@ -47,10 +47,11 @@ void HUD_draw_message( char *text, Vector2D position, Vector3D color, Uint32 w, 
     hud.surface = TTF_RenderText_Blended( hud.font, text, c );
     hud.texture = SDL_CreateTextureFromSurface( hud.renderer, hud.surface );
 
-    TTF_SizeText( hud.font, hud.texture, &rect.w, &rect.h );
+    TTF_SizeText( hud.font, hud.texture, NULL, &rect.h );
 
-    rect.w = w;
-    rect.h = h;
+    rect.w = hud.surface->w;
+    rect.h = hud.surface->h;
+
     SDL_RenderCopy( hud.renderer, hud.texture, NULL, &rect );
 
     SDL_FreeSurface( hud.surface );

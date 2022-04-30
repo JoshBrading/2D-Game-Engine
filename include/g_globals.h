@@ -16,6 +16,8 @@ extern Uint8 g_debug;
 extern Uint32 g_screen_width;
 extern Uint32 g_screen_height;
 extern Uint32 g_time;
+extern Uint32 g_update_time;
+extern Uint32 g_update_time_fixed;
 
 extern GameState g_state;
 

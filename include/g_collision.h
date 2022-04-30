@@ -86,7 +86,7 @@ void collision_cell_remove_entity ( CollisionCell* cell, struct Entity_S* entity
 
 void collision_system_update_all ();
 
-int collision_rect_test ( Rect A, Rect B );
+int collision_rect_test ( Rect A, Rect B, CollisionInfo *info_out );
 
 int collision_line_line_test ( Line A, Line B, Vector2D* hit_point );
 
@@ -97,4 +97,8 @@ Uint8 collision_point_rect_test( Vector2D p, Rect r );
 HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32 id_mask, Uint32 team_mask );
 
 HitObj raycast_between( Vector2D origin, Vector2D target, float max_distance, Uint32 id_mask, Uint32 team_mask );
+
+void collision_system_enable_debug();
+void collision_system_disable_debug();
+
 #endif

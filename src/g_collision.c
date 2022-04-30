@@ -17,6 +17,8 @@ typedef struct
 	CollisionCell* cell_list;
 	Uint32			cell_count;
 	Vector2D		cell_xy;
+
+	Uint8			debug;
 }CollisionSystem;
 
 static CollisionSystem collision_system = { 0 };
@@ -32,6 +34,7 @@ void collision_system_init ( Vector2D cell_xy )
 		return;
 	}
 	collision_system.cell_count = maxCells;
+	collision_system.debug = false;
 	atexit( collision_system_close );
 	slog ( "CollisionSystem: Initialized" );
 	collision_system_generate_cells ( cell_xy );
@@ -39,7 +42,7 @@ void collision_system_init ( Vector2D cell_xy )
 
 void collision_system_draw_debug ()
 {
-	for ( int i = 0; i < collision_system.cell_count; i++ )
+	for ( Uint32 i = 0; i < collision_system.cell_count; i++ )
 	{
 		if ( collision_system.cell_list[i]._inuse )
 		{
@@ -58,7 +61,7 @@ void collision_system_draw_debug ()
 }
 void collision_system_close()
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < collision_system.cell_count; i++)
 	{
 		collision_cell_free( &collision_system.cell_list[i] );
@@ -130,7 +133,7 @@ void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, 
 			CollisionCell testCell = collision_system.cell_list[pos[j][k]];
 			if ( testCell.entity_count > 0 )
 			{
-				for ( int i = 0; i < testCell.entity_count; i++ )
+				for ( Uint32 i = 0; i < testCell.entity_count; i++ )
 				{
 					if ( !testCell.entity_list[i] ) continue;
 					if ( !testCell.entity_list[i]->_inuse ) continue;
@@ -157,7 +160,7 @@ void collision_system_check_neighbor_cells_for_collision ( CollisionCell* cell, 
 			rectToDraw.y = testCell.cell_position.y;
 			rectToDraw.w = testCell.bBox.x;
 			rectToDraw.h = testCell.bBox.y;
-			if ( g_debug ) gf2d_draw_rect ( rectToDraw, color );
+			if ( collision_system.debug ) gf2d_draw_rect( rectToDraw, color );
 
 		}
 	}
@@ -173,10 +176,9 @@ CollisionCell* collision_system_get_nearest_cell_within_range ( Vector2D positio
 {
 	CollisionCell* cell;
 	cell = NULL;
-	double x1, x2, y1, y2;
 	distance = pow ( distance, 2 );
 
-	for ( int i = 0; i < collision_system.cell_count; i++ )
+	for ( Uint32 i = 0; i < collision_system.cell_count; i++ )
 	{
 		if ( collision_system.cell_list[i]._inuse )
 		{
@@ -200,7 +202,7 @@ void collision_cell_add_entity ( CollisionCell* cell, Entity* entity )
 	if ( !cell ) return;
 	if ( !entity ) return;
 
-	for ( int i = 0; i < cell->max_entities; i++ )
+	for ( Uint32 i = 0; i < cell->max_entities; i++ )
 	{
 		if ( cell->entity_list[i] == NULL )
 		{
@@ -223,7 +225,7 @@ void collision_cell_remove_entity ( CollisionCell* cell, Entity* entity )
 	if ( !cell ) return;
 	if ( !entity )return;
 	//slog( "===================== REMOVE ====================" );
-	for ( int i = 0; i <= cell->max_entities + 1; i++ )
+	for ( Uint32 i = 0; i <= cell->max_entities + 1; i++ )
 	{
 		//slog( "CollisionCellRemoveEntity: Entity %i removed from cell %i", entity->_id, cell->id );
 
@@ -246,14 +248,14 @@ void collision_cell_update ( CollisionCell* self )
 {
 	if ( !self ) return;
 	Uint32 entCount = 0;
-	for ( int i = 0; i < self->max_entities; i++ )
+	for ( Uint32 i = 0; i < self->max_entities; i++ )
 	{
 		if ( self->entity_list[i] ) entCount++;
 	}
 	self->entity_count = entCount;
 	if ( self->entity_count > 0 )
 	{
-		for ( int i = 0; i < self->entity_count; i++ )
+		for ( Uint32 i = 0; i < self->entity_count; i++ )
 		{
 			Entity* first = self->entity_list[i];
 			if ( !first ) continue;
@@ -278,13 +280,10 @@ void collision_cell_update ( CollisionCell* self )
 			info.time = g_time;
 
 			StaticEntityManager *static_entity_manager = static_entity_manager_get();
-			Uint32 ent_id;
-			Vector2D rtrn_hit, tmp;
-			float dist;
 			float old_dist = FLT_MAX;
 			Uint8 collision = false;
 
-			int i;
+			Uint32 i;
 			for (i = 0; i < static_entity_manager->static_entity_count; i++)
 			{
 				if (!static_entity_manager->static_entity_list[i]._inuse) continue;
@@ -304,6 +303,7 @@ void collision_cell_update ( CollisionCell* self )
 			collision_system_check_neighbor_cells_for_collision ( self, first );
 		}
 	}
+
 }
 
 int collision_rect_test ( Rect A, Rect B, CollisionInfo *info_out )
@@ -367,7 +367,7 @@ int collision_rect_test ( Rect A, Rect B, CollisionInfo *info_out )
 			info_out->left = false;
 			info_out->right = false;
 		}
-		if ( g_debug ) gf2d_draw_fill_rect ( collisionRect, vector4d ( 255, 0, 0, 100 ) );
+		if ( collision_system.debug ) gf2d_draw_fill_rect ( collisionRect, vector4d ( 255, 0, 0, 100 ) );
 
 		return 1;
 	}
@@ -544,7 +544,8 @@ Uint8 collision_point_rect_test( Vector2D p, Rect r )
 
 void collision_system_update_all ()
 {
-	int i;
+	if (collision_system.debug) collision_system_draw_debug();
+	Uint32 i;
 	for ( i = 0; i < collision_system.cell_count; i++ )
 	{
 		if ( !collision_system.cell_list[i]._inuse )// not used yet
@@ -562,7 +563,7 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 	hit.entity = NULL;
 
 	Vector2D hit_point = vector2d ( 0, 0 );
-	Vector2D a, b, temp;
+	Vector2D a, b;
 	float m = direction.x / direction.y;
 	Line line;
 	Rect rect;
@@ -623,11 +624,11 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 	Uint32 ent_id = -1;
 	Uint32 sEnt_id = -1;
 	Vector2D rtrn_hit, tmp;
-	float dist, ent_dist, sEnt_dist;
+	float dist;
 	float old_dist = FLT_MAX;
 	Uint8 collision = false;
 
-	for ( int i = 0; i < entity_manager->entity_count; i++ )
+	for ( Uint32 i = 0; i < entity_manager->entity_count; i++ )
 	{
 		if ( !entity_manager->entity_list[i]._inuse ) continue;
 		if ( entity_manager->entity_list[i]._id == id_mask ) continue;
@@ -659,7 +660,7 @@ HitObj raycast ( Vector2D origin, Vector2D direction, float max_distance, Uint32
 		}
 	}
 
-	for (int i = 0; i < static_entity_manager->static_entity_count; i++)
+	for (Uint32 i = 0; i < static_entity_manager->static_entity_count; i++)
 	{
 		if (!static_entity_manager->static_entity_list[i]._inuse) continue;
 
@@ -705,4 +706,15 @@ HitObj raycast_between( Vector2D origin, Vector2D target, float max_distance, Ui
 	Vector2D dir = look_at_angle_slope( origin, target );
 
 	return raycast( origin, dir, max_distance, id_mask, team_mask );
+}
+
+
+void collision_system_enable_debug()
+{
+	collision_system.debug = true;
+}
+
+void collision_system_disable_debug()
+{
+	collision_system.debug = false;
 }

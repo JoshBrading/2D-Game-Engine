@@ -70,6 +70,7 @@ typedef struct Entity_S
 
 	Vector2D				offset;		/**<Offset to the true center of the entity*/
 	Vector2D				position;	/**<where the entity is in the world*/
+	Vector2D				center;		/**<Actual center of entity*/
 	Vector3D				rotation;	/**<Rotation of the entity*/
 	Vector2D				scale;		/**<Vector2D Scale of entity*/
 	Vector2D				speed;

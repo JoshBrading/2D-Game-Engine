@@ -9,25 +9,27 @@ void rifle_think_fixed( Weapon *self );
 
 Weapon *rifle_new()
 {
-	Weapon *wep = NULL;
+	Weapon *weapon = NULL;
 
-	wep = weapon_new();
+	weapon = weapon_new();
 
-	wep->ammo = 30;
-	wep->max_ammo = 30;
-	wep->reserve_ammo = 120;
+	weapon->ammo = 30;
+	weapon->max_ammo = 30;
+	weapon->reserve_ammo = 120;
 
-	wep->reload_time = 300;
-	wep->fire_rate = 150;
-	wep->damage = 10;
+	weapon->reload_time = 300;
+	weapon->fire_rate = 150;
+	weapon->damage = 10;
 
-	wep->impact = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );
+	weapon->impact = gf2d_sprite_load_all( "images/Bullet_Impact.png", 256, 256, 32 );
 
-	wep->impact->frame_count = 32;
+	weapon->impact->frame_count = 32;
 
-	wep->timer = g_time;
+	weapon->timer = g_time;
 
-	wep->thinkFixed = rifle_think_fixed;
+	weapon->thinkFixed = rifle_think_fixed;
+
+	return weapon;
 }
 
 void rifle_think_fixed( Weapon *self )

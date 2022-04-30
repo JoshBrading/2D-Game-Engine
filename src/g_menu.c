@@ -46,7 +46,7 @@ void menu_manager_init( Uint32 maxMenus )
 
 void menu_manager_close()
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		menu_free( &menu_manager.menu_list[i] );
@@ -101,7 +101,7 @@ Menu *menu_load( char* filename )
 
 
 	Menu *menu = menu_new();
-	if (!menu) return;
+	if (!menu) return NULL;
 
 	char *background = sj_get_string_value( sj_object_get_value( mjson, "background" ) );
 	char *selector_sprite = sj_get_string_value( sj_object_get_value( mjson, "select_icon" ) );
@@ -126,7 +126,7 @@ void menu_load_images( Menu *menu, SJson *images )
 	Uint32 image_count = sj_array_get_count( images );
 	if (image_count == 0) return;
 
-	for (int i = 0; i < image_count; i++)
+	for (Uint32 i = 0; i < image_count; i++)
 	{
 		MenuImage menuImage;
 		Vector2D pos;
@@ -149,7 +149,7 @@ void menu_load_labels( Menu *menu, SJson *labels )
 	Uint32 label_count = sj_array_get_count( labels );
 	if (label_count == 0) return;
 
-	for (int i = 0; i < label_count; i++)
+	for (Uint32 i = 0; i < label_count; i++)
 	{
 		MenuText menuText;
 		Vector2D pos;
@@ -176,7 +176,7 @@ void menu_load_buttons( Menu *menu, SJson *buttons )
 	Uint32 label_count = sj_array_get_count( buttons );
 	if (label_count == 0) return;
 
-	for (int i = 0; i < label_count; i++)
+	for (Uint32 i = 0; i < label_count; i++)
 	{
 		MenuButton menuButton;
 		Vector2D pos;
@@ -202,7 +202,7 @@ void menu_load_buttons( Menu *menu, SJson *buttons )
 Menu *menu_new()
 {
 
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		if (!menu_manager.menu_list[i]._inuse)
@@ -302,7 +302,7 @@ void menu_free( Menu *self )
 	}
 //	if ( self->buttons && gfc_list_get_count( self->buttons ) > 0)
 //	{
-//		for (int i = 0; i < gfc_list_get_count( self->buttons ); i++)
+//		for (Uint32 i = 0; i < gfc_list_get_count( self->buttons ); i++)
 //		{
 //			if (self->buttons->elements[i].data == NULL) continue;
 //		}
@@ -389,7 +389,7 @@ void menu_draw( Menu *self )
 
 	if (self->images)
 	{
-		for (int i = 0; i < self->images->count; i++)
+		for (Uint32 i = 0; i < self->images->count; i++)
 		{
 			MenuImage *image = (MenuImage *)self->images->elements[i].data;
 			if (!image) return;
@@ -406,7 +406,7 @@ void menu_draw( Menu *self )
 	
 	if (self->labels)
 	{
-		for (int i = 0; i < self->labels->count; i++)
+		for (Uint32 i = 0; i < self->labels->count; i++)
 		{
 			MenuText *label = (MenuText *)self->labels->elements[i].data;
 			if (!label) return;
@@ -416,7 +416,7 @@ void menu_draw( Menu *self )
 	
 	if (self->buttons)
 	{
-		for (int i = 0; i < self->buttons->count; i++)
+		for (Uint32 i = 0; i < self->buttons->count; i++)
 		{
 			MenuButton *button = (MenuButton *)self->buttons->elements[i].data;
 			if (!button) return;
@@ -426,7 +426,7 @@ void menu_draw( Menu *self )
 
 	if (self->dropdowns)
 	{
-		for (int i = 0; i < self->dropdowns->count; i++)
+		for (Uint32 i = 0; i < self->dropdowns->count; i++)
 		{
 			MenuDropdown *dropdown = (MenuDropdown *)self->dropdowns->elements[i].data;
 			if (!dropdown) return;
@@ -451,7 +451,7 @@ void menu_draw( Menu *self )
 
 void menu_manager_update_all()
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		if (!menu_manager.menu_list[i]._inuse)// not used yet
@@ -464,7 +464,7 @@ void menu_manager_update_all()
 
 void menu_manager_update_fixed_all()
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		if (!menu_manager.menu_list[i]._inuse)// not used yet
@@ -477,7 +477,7 @@ void menu_manager_update_fixed_all()
 
 void menu_manager_draw_all()
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		if (!menu_manager.menu_list[i]._inuse)// not used yet
@@ -536,7 +536,7 @@ void menu_draw_dropdown( MenuDropdown *dropdown )
 						  NULL,
 						  0 );
 	}
-	for (int i = 0; i < dropdown->buttons->count; i++)
+	for (Uint32 i = 0; i < dropdown->buttons->count; i++)
 	{
 		MenuButton *button = (MenuButton *)dropdown->buttons->elements[i].data;
 		if (!button) return;
@@ -564,8 +564,8 @@ void menu_draw_button( MenuButton *button )
 
 MenuButton *menu_next_button( Menu *self, MenuButton* current )
 {
-	if (!self) return;
-	if (!current) return;
+	if (!self) return NULL;
+	if (!current) return NULL;
 	Uint32 index = gfc_list_get_item_index( self->nav_btn_ctx, current ) + 1;
 	MenuButton *next;
 	if (index < gfc_list_get_count( self->nav_btn_ctx ))
@@ -584,12 +584,14 @@ MenuButton *menu_next_button( Menu *self, MenuButton* current )
 	self->current_button = next;
 
 	gfc_sound_play( self->hover_sfx, 0, 1, -1, -1 );
+
+	return next;
 }
 
 MenuButton *menu_prev_button( Menu *self, MenuButton *current )
 {
-	if (!self) return;
-	if (!current) return;
+	if (!self) return NULL;
+	if (!current) return NULL;
 	Uint32 index = gfc_list_get_item_index( self->nav_btn_ctx, current );
 	MenuButton *next;
 	if (index > 0)
@@ -608,6 +610,7 @@ MenuButton *menu_prev_button( Menu *self, MenuButton *current )
 	self->current_button = next;
 	gfc_sound_play( self->hover_sfx, 0, 1, -1, -1 );
 
+	return next;
 }
 
 void menu_close( Menu *self )
@@ -621,7 +624,7 @@ void menu_close( Menu *self )
 
 void menu_manager_close_all()
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		if (!menu_manager.menu_list[i]._inuse)// not used yet
@@ -700,7 +703,7 @@ void menu_g_state_change( Menu *self, int state )
 
 Menu *menu_manager_get_by_tag( char *tag )
 {
-	int i;
+	Uint32 i;
 	for (i = 0; i < menu_manager.menu_count; i++)
 	{
 		if (!menu_manager.menu_list[i]._inuse)// not used yet
@@ -712,4 +715,6 @@ Menu *menu_manager_get_by_tag( char *tag )
 			return &menu_manager.menu_list[i];
 		}
 	}
+
+	return NULL;
 }

@@ -6,7 +6,6 @@
 #include "g_hud.h"
 #include "g_globals.h"
 
-
 static EntityManager entity_manager = { 0 };
 
 void entity_manager_close()
@@ -63,11 +62,32 @@ void entity_manager_draw_debug()
 	{
 		if (entity_manager.entity_list[i]._inuse)
 		{
-			if ( entity_manager.entity_list[i].bounds.x != 0 && entity_manager.entity_list[i].bounds.y != 0 )
+			Entity *entity = &entity_manager.entity_list[i];
+			if (entity->bounds.x != 0 && entity->bounds.y != 0 )
 			{
-				SDL_Rect rectToDraw = { entity_manager.entity_list[i].bounds.x, entity_manager.entity_list[i].bounds.y, entity_manager.entity_list[i].bounds.w, entity_manager.entity_list[i].bounds.h };
+				SDL_Rect rectToDraw = { entity->bounds.x, entity->bounds.y, entity->bounds.w, entity->bounds.h };
 				gf2d_draw_rect ( rectToDraw, vector4d ( 255, 255, 0, 255 ) );
 			}
+
+			char *tag[32];
+			char *visibility[32];
+			char *health[32];
+			char *position[32];
+
+			snprintf( tag, sizeof( tag ), "Tag: %s", entity->tag );
+			snprintf( visibility, sizeof( visibility ), "Visible: %i", entity->visibility );
+			snprintf( health, sizeof( health ), "Health: %0.2f", entity->health );
+			snprintf( position, sizeof( position ), "Pos: (%0.2f, %0.2f)", entity->position.x, entity->position.y );
+
+			Vector2D tag_pos = { entity->bounds.x + entity->bounds.w + 4, entity->bounds.y };
+			Vector2D visibility_pos = { entity->bounds.x + entity->bounds.w + 4, entity->bounds.y + 16 };
+			Vector2D health_pos = { entity->bounds.x + entity->bounds.w + 4, entity->bounds.y + 32 };
+			Vector2D position_pos = { entity->bounds.x + entity->bounds.w + 4, entity->bounds.y + 48 };
+
+			HUD_draw_message( tag, tag_pos, vector3d( 255, 255, 255 ), 0, 0 );
+			HUD_draw_message( visibility, visibility_pos, vector3d( 255, 255, 255 ), 0, 0 );
+			HUD_draw_message( health, health_pos, vector3d( 255, 255, 255 ), 0, 0 );
+			HUD_draw_message( position, position_pos, vector3d( 255, 255, 255 ), 0, 0 );
 		}
 	}
 }
@@ -227,9 +247,11 @@ void entity_update( Entity *self )
 		self->col_info.left = false;
 		self->col_info.right = false;
 	}
+
+	vector2d_sub( self->center, self->position, self->offset );
 	self->bounds.x = self->position.x - self->offset.x;
 	self->bounds.y = self->position.y - self->offset.y;
-	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->position, 32.0f );
+	CollisionCell *cell = collision_system_get_nearest_cell_within_range( self->center, 32.0f );
 	if (&self->cell->id != &cell->id)
 	{
 		collision_cell_remove_entity( self->cell, self );
