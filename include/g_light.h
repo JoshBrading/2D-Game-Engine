@@ -9,6 +9,9 @@ typedef struct LightData_S
 	Sprite *lit_background;
 	Sprite *mask;
 
+	SDL_Vertex verts[1024];
+	Uint32 vertex_count;
+
 	Uint8 debug;
 }LightData;
 
@@ -23,3 +26,4 @@ void light_data_enable_debug();
 void light_data_disable_debug();
 
 #endif // !__G_LIGHT_H__
+

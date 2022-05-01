@@ -57,6 +57,8 @@ void gf2d_draw_rect(SDL_Rect rect,Vector4D color)
                            255,
                            255,
                            255);
+
+   
 }
 
 void gf2d_draw_fill_rect(SDL_Rect rect,Vector4D color)
