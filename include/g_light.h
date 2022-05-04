@@ -5,14 +5,15 @@
 
 typedef struct LightData_S
 {
-	Sprite *unlit_background;
-	Sprite *lit_background;
-	Sprite *mask;
+	SDL_Texture *unlit_background;
+	SDL_Texture *lit_background;
+	SDL_Texture *mask;
 
 	SDL_Vertex verts[1024];
 	Uint32 vertex_count;
 
 	Uint8 debug;
+	SDL_Texture *debug_texture;
 }LightData;
 
 void light_init();

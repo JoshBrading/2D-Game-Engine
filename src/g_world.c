@@ -59,6 +59,7 @@ void world_load( char *filename )
 
         if (isStatic)
         {
+            if (strcmp( sj_get_string_value( sj_object_get_value( data, "type" ) ), "background" ) == 0) continue;
             StaticEntity *sEnt;
             sEnt = static_entity_new();
             sEnt->sprite = gf2d_sprite_load_image( filename );

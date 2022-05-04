@@ -81,7 +81,7 @@ int main ( int argc, char* argv[] )
         700,
         vector4d ( 0, 0, 0, 255 ),
         0 );
-    gf2d_graphics_set_frame_delay ( 16 ); // Changed from 16
+    gf2d_graphics_set_frame_delay ( 0 ); // Changed from 16
     gf2d_sprite_init ( 128 );
 
     Sprite* splash;                                         //
@@ -304,7 +304,11 @@ Uint8 m = true;
        //     main_menu->enabled = false;
        // }
 
+    
+        light_update();
+
         static_entity_draw_all();
+        
         entity_manager_draw_all();
         weapon_manager_draw_all();
         particle_manager_draw_all();
@@ -341,7 +345,6 @@ Uint8 m = true;
 
         }
 
-        light_update();
 
 
         menu_manager_update_all();
@@ -365,6 +368,9 @@ Uint8 m = true;
       //
       //  }
 
+
+
+
         gf2d_grahics_next_frame ();// render current draw frame and skip to the next frame
 
         if ( keys[SDL_SCANCODE_Q] ) g_debug = true;
@@ -374,6 +380,8 @@ Uint8 m = true;
         if ( keys[SDL_SCANCODE_GRAVE] && !debug->enabled && g_state == G_RUN) menu_open( debug ); // exit condition
         //else if ( keys[SDL_SCANCODE_ESCAPE] && menu->enabled) menu_close( menu ); // exit condition
         //slog("Rendering at %f FPS",gf2d_graphics_get_frames_per_second());
+
+
     }
     slog ( "---==== END ====---" );
     return 0;
