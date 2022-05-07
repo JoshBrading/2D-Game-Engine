@@ -287,10 +287,6 @@ Uint8 m = true;
         keys = SDL_GetKeyboardState ( NULL ); // get the keyboard state for this frame
         /*update things here*/
         g_time = SDL_GetTicks();
-        SDL_GetMouseState ( &mx, &my );
-        mf += 0.1;
-        if ( mf >= 16.0 )mf = 0;
-
 
         gf2d_graphics_clear_screen ();// clears drawing buffers
         // all drawing should happen betweem clear_screen and next_frame
@@ -304,7 +300,10 @@ Uint8 m = true;
        //     main_menu->enabled = false;
        // }
 
-    
+        editor_think();
+
+        menu_manager_think_all();
+        menu_manager_update_all();
         light_update();
 
         static_entity_draw_all();
@@ -347,7 +346,6 @@ Uint8 m = true;
 
 
 
-        menu_manager_update_all();
         menu_manager_draw_all();
 
         if (g_time > time + 20)

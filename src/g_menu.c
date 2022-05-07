@@ -4,14 +4,17 @@
 #include "gf2d_graphics.h"
 #include "g_globals.h"
 #include "g_func.h"
+#include "gf2d_draw.h"
 
-static void menu_draw_text( MenuText *text );
-static void menu_draw_button( MenuButton *button );
-static void menu_draw_text_with_offset( MenuText text, Vector2D offset );
-static void menu_draw_dropdown( MenuDropdown *dropdown );
+static void menu_draw_text( Menu *self, MenuText *text );
+static void menu_draw_button( Menu *self, MenuButton *button );
+static void menu_draw_text_with_offset( Menu *self, MenuText text, Vector2D offset );
+static void menu_draw_dropdown( Menu *self, MenuDropdown *dropdown );
 static MenuButton *menu_next_button( Menu *self, MenuButton *current );
 static MenuButton *menu_prev_button( Menu *self, MenuButton *current );
 static void menu_load_images( Menu *menu, SJson *images );
+void menu_button_activate( Menu *self, MenuButton *button );
+
 
 static Uint32 move_cooldown = 200;
 static Uint32 move_timer;
@@ -216,6 +219,8 @@ Menu *menu_new()
 
 			menu_manager.menu_list[i].nav_btn_ctx = menu_manager.menu_list[i].buttons;
 
+			menu_manager.menu_list[i].floating_menu_offset = vector2d( 0, 0 );
+
 			menu_manager.menu_list[i].hover_sfx = gfc_sound_load( "audio/SFX_button.mp3", 1, 0 );
 			menu_manager.menu_list[i].click_sfx = gfc_sound_load( "audio/SFX_button_click.mp3", 1, 1 );
 			menu_manager.menu_list[i].open_sfx = gfc_sound_load( "audio/SFX_dropdown.mp3", 1, 2 );
@@ -243,6 +248,11 @@ MenuButton *menu_button_new()
 	button->label.position = vector2d( 30, 0 );
 	button->background = gf2d_sprite_load_image( "images/gui/button.png" );
 	button->icon_offset = vector2d( 5, 2 );
+
+	button->bounds.x = button->position.x;
+	button->bounds.y = button->position.y;
+	button->bounds.w = button->background->frame_w;
+	button->bounds.h = button->background->frame_h;
 
 	return button;
 }
@@ -289,6 +299,11 @@ MenuDropdown *menu_dropdown_new()
 	return dropdown;
 }
 
+void menu_button_activate( Menu* self, MenuButton *button )
+{
+	if (self->current_button->action) self->current_button->action( self, self->current_button->data );
+}
+
 void menu_free( Menu *self )
 {
 	if (!self)
@@ -311,11 +326,33 @@ void menu_free( Menu *self )
 	memset( self, 0, sizeof( self ) );
 }
 
-void menu_update( Menu *self )
+void menu_think( Menu *self )
 {
 	if (!self)return;
 	if (!self->_inuse) return;
 	if (!self->enabled) return;
+	SDL_PumpEvents();
+	SDL_Event e;
+	SDL_PollEvent( &e );
+	int mx, my;
+	SDL_GetMouseState( &mx, &my );
+
+	if (e.type == SDL_MOUSEBUTTONDOWN)
+	{
+		if (e.button.button == SDL_BUTTON_LEFT)
+		{
+			if (mx >= self->current_button->bounds.x &&
+				 mx <= self->current_button->bounds.x + self->current_button->bounds.w &&
+				 my >= self->current_button->bounds.y &&
+				 my <= self->current_button->bounds.y + self->current_button->bounds.h)
+			{
+
+				menu_button_activate( self, NULL );
+			}
+		}
+	}
+
+
 
 	if (move_timer < g_time)
 	{
@@ -340,12 +377,87 @@ void menu_update( Menu *self )
 			gfc_sound_play( self->click_sfx, 0, 1, -1, -1 );
 			moved = true;
 		}
-		
 
-		if( moved ) move_timer = g_time + move_cooldown; // Onlu update if we moved to prevent unresponsive clicks
+
+
+		if (moved) move_timer = g_time + move_cooldown; // Only update if we moved to prevent unresponsive clicks
+	}
+	gf2d_draw_rect( self->current_button->bounds, vector4d( 255, 255, 255, 255 ) );
+
+
+
+	if (self->think)self->think( self );
+}
+
+void menu_update( Menu *self )
+{
+	if (!self)return;
+	if (!self->_inuse) return;
+	if (!self->enabled) return;
+
+	SDL_Event e;
+	SDL_PollEvent( &e );
+	int mx, my;
+	SDL_GetMouseState( &mx, &my );
+
+	if (e.type == SDL_MOUSEBUTTONDOWN)
+	{
+		slog( "Event" );
 	}
 
+	if (self->buttons)
+	{
+		for (Uint32 i = 0; i < self->buttons->count; i++)
+		{
+			MenuButton *button = (MenuButton *)self->buttons->elements[i].data;
+			if (!button) continue;
+			if (mx >= button->bounds.x &&
+				 mx <= button->bounds.x + button->bounds.w &&
+				 my >= button->bounds.y &&
+				 my <= button->bounds.y + button->bounds.h)
+			{
+				self->current_button = button;
+
+				gf2d_draw_fill_rect( button->bounds, vector4d( 0, 255, 0, 100 ) );
+			}
+
+			//gf2d_draw_circle( vector2d( mx, my ), 4, vector4d( 0, 0, 255, 255 ) );
+			//gf2d_draw_rect( button->bounds, vector4d( 255, 0, 0, 255 ) );
+		}
+	}
+
+	if (self->dropdowns)
+	{
+		for (Uint32 i = 0; i < self->dropdowns->count; i++)
+		{
+			MenuDropdown *dropdown = (MenuDropdown *)self->dropdowns->elements[i].data;
+			if (!dropdown) continue;
+			if (!dropdown->active) continue;
+			if (dropdown->buttons)
+			{
+				for (Uint32 i = 0; i < dropdown->buttons->count; i++)
+				{
+					MenuButton *button = (MenuButton *)dropdown->buttons->elements[i].data;
+					if (!button) return;
+					if (mx >= button->bounds.x &&
+							 mx <= button->bounds.x + button->bounds.w &&
+							 my >= button->bounds.y &&
+							 my <= button->bounds.y + button->bounds.h)
+					{
+						self->current_button = button;
+						gf2d_draw_fill_rect( button->bounds, vector4d( 0, 255, 0, 100 ) );
+					}
+
+					gf2d_draw_circle( vector2d( mx, my ), 4, vector4d( 0, 0, 255, 255 ) );
+					gf2d_draw_rect( button->bounds, vector4d( 255, 0, 0, 255 ) );
+				}
+			}
+		}
+	}
+
+
 	if (self->update)self->update( self );
+
 }
 
 void menu_update_fixed( Menu *self )
@@ -365,6 +477,37 @@ void menu_update_fixed( Menu *self )
 		//vector2d_add( tmp, tmp, tmp_offset );
 		self->selector_position = tmp;
 	}
+
+	if (self->buttons)
+	{
+		for (Uint32 i = 0; i < self->buttons->count; i++)
+		{
+			MenuButton *button = (MenuButton *)self->buttons->elements[i].data;
+			if (!button) return;
+			button->bounds.x = button->position.x + self->floating_menu_offset.x;
+			button->bounds.y = button->position.y + self->floating_menu_offset.y;
+		}
+	}
+
+	if (self->dropdowns)
+	{
+		for (Uint32 i = 0; i < self->dropdowns->count; i++)
+		{
+			MenuDropdown *dropdown = (MenuDropdown *)self->dropdowns->elements[i].data;
+			if (!dropdown) return;
+
+			if (dropdown->buttons)
+			{
+				for (Uint32 i = 0; i < dropdown->buttons->count; i++)
+				{
+					MenuButton *button = (MenuButton *)dropdown->buttons->elements[i].data;
+					if (!button) return;
+					button->bounds.x = button->position.x + self->floating_menu_offset.x;
+					button->bounds.y = button->position.y + self->floating_menu_offset.y;
+				}
+			}
+		}
+	}
 }
 
 
@@ -373,6 +516,9 @@ void menu_draw( Menu *self )
 	if (!self)return;
 	if (!self->_inuse) return;
 	if (!self->enabled) return;
+
+
+	Vector2D pos_plus_offset;
 
 	if (self->background)
 	{
@@ -393,8 +539,11 @@ void menu_draw( Menu *self )
 		{
 			MenuImage *image = (MenuImage *)self->images->elements[i].data;
 			if (!image) return;
+
+			vector2d_add( pos_plus_offset, image->position, self->floating_menu_offset );
+
 			gf2d_sprite_draw( image->sprite,
-							  image->position,
+							  pos_plus_offset,
 							  NULL,
 							  NULL,
 							  NULL,
@@ -410,7 +559,7 @@ void menu_draw( Menu *self )
 		{
 			MenuText *label = (MenuText *)self->labels->elements[i].data;
 			if (!label) return;
-			menu_draw_text( label );
+			menu_draw_text( self, label );
 		}
 	}
 	
@@ -420,7 +569,7 @@ void menu_draw( Menu *self )
 		{
 			MenuButton *button = (MenuButton *)self->buttons->elements[i].data;
 			if (!button) return;
-			menu_draw_button( button );
+			menu_draw_button( self, button );
 		}
 	}
 
@@ -430,14 +579,16 @@ void menu_draw( Menu *self )
 		{
 			MenuDropdown *dropdown = (MenuDropdown *)self->dropdowns->elements[i].data;
 			if (!dropdown) return;
-			menu_draw_dropdown( dropdown );
+			menu_draw_dropdown( self, dropdown );
 		}
 	}
 	
 	if (self->selector_sprite)
 	{
+		vector2d_add( pos_plus_offset, self->selector_position, self->floating_menu_offset );
+
 		gf2d_sprite_draw( self->selector_sprite,
-						  self->selector_position,
+						  pos_plus_offset,
 						  NULL,
 						  NULL,
 						  NULL,
@@ -447,6 +598,19 @@ void menu_draw( Menu *self )
 	}
 
 	if (self->update)self->update( self );
+}
+
+void menu_manager_think_all()
+{
+	Uint32 i;
+	for (i = 0; i < menu_manager.menu_count; i++)
+	{
+		if (!menu_manager.menu_list[i]._inuse && !menu_manager.menu_list[i].enabled)// not used yet
+		{
+			continue;// skip this iteration of the loop
+		}
+		menu_think( &menu_manager.menu_list[i] );
+	}
 }
 
 void menu_manager_update_all()
@@ -488,13 +652,13 @@ void menu_manager_draw_all()
 	}
 }
 
-void menu_draw_text( MenuText *text )
+void menu_draw_text( Menu* self, MenuText *text )
 {
 	if (!text) return;
 	if (!text->text) return;
 	if (!text->font) return;
 	SDL_Color c = { 255, 255, 255 };
-	SDL_Rect rect = { text->position.x, text->position.y, 0, 0 };
+	SDL_Rect rect = { text->position.x + self->floating_menu_offset.x, text->position.y + self->floating_menu_offset.y, 0, 0 };
 	
 	surface = TTF_RenderText_Blended( text->font, text->text, c );
 	texture = SDL_CreateTextureFromSurface( renderer, surface );
@@ -508,17 +672,17 @@ void menu_draw_text( MenuText *text )
 	SDL_DestroyTexture( texture );
 }
 
-void menu_draw_text_with_offset( MenuText text, Vector2D offset )
+void menu_draw_text_with_offset( Menu *self, MenuText text, Vector2D offset )
 {
 	Vector2D tmp;
 	vector2d_add( tmp, text.position, offset );
 	text.position = tmp;
 
-	menu_draw_text( &text );
+	menu_draw_text( self, &text );
 }
 
 
-void menu_draw_dropdown( MenuDropdown *dropdown )
+void menu_draw_dropdown( Menu *self, MenuDropdown *dropdown )
 {
 	if (!dropdown) return;
 	if (!dropdown->active) return;
@@ -540,18 +704,24 @@ void menu_draw_dropdown( MenuDropdown *dropdown )
 	{
 		MenuButton *button = (MenuButton *)dropdown->buttons->elements[i].data;
 		if (!button) return;
-		menu_draw_button( button );
+		menu_draw_button( self, button );
 	}
 
 
 }
 
-void menu_draw_button( MenuButton *button )
+void menu_draw_button( Menu *self, MenuButton *button )
 {
 	if (!button)return;
+
 	if (!button->background) return;
+
+	Vector2D offset;
+
+	vector2d_add( offset, button->position, self->floating_menu_offset );
+
 	gf2d_sprite_draw( button->background,
-					  button->position,
+					  offset,
 					  NULL,
 					  NULL,
 					  NULL,
@@ -559,7 +729,11 @@ void menu_draw_button( MenuButton *button )
 					  NULL,
 					  0 );
 
-	menu_draw_text_with_offset( button->label, button->position );
+	menu_draw_text_with_offset( self, button->label, button->position );
+
+	//gf2d_draw_rect(button->bounds, vector4d(255, 0, 0, 255));
+	//SDL_Rect test = { 100, 100, 50, 50 };
+	//gf2d_draw_rect(test, vector4d(255, 0, 0, 255));
 }
 
 MenuButton *menu_next_button( Menu *self, MenuButton* current )

@@ -5,4 +5,5 @@
 
 Menu* editor_load();
 
+void editor_think();
 #endif // !__G_EDITOR_H__

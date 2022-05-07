@@ -1,0 +1,100 @@
+{
+  "entities": [
+    {
+      "name": "Door 10x50 (Interactable)",
+      "type": "wall",
+      "isStatic": false,
+      "sprite": "images/player.png",
+      "collisionType": "box",
+      "hit_off_x": 0,
+      "hit_off_y": 0,
+      "height": -1,
+      "width": -1,
+      "speed": 50,
+      "range": 75,
+      "health": 100,
+      "frame_h": -1,
+      "frame_w": -1,
+      "frames_per_line": 0,
+      "position_x": 608,
+      "position_y": 100
+    }
+  ],
+  "scenery": [
+    {
+      "name": "Floor 1200x720",
+      "type": "background",
+      "isStatic": true,
+      "sprite": "images/backgrounds/floor.png",
+      "collisionType": "NULL",
+      "height": null,
+      "width": null
+    },
+    {
+      "name": "Wall 25x100",
+      "type": "static",
+      "isStatic": true,
+      "sprite": "images/scenery/wall_25x100.png",
+      "collisionType": "box",
+      "height": null,
+      "width": null,
+      "position_x": 104,
+      "position_y": 0
+    },
+    {
+      "name": "Wall 25x100 (90d)",
+      "type": "static",
+      "isStatic": true,
+      "sprite": "images/scenery/90d_wall_25x100.png",
+      "collisionType": "box",
+      "height": null,
+      "width": null,
+      "position_x": 229,
+      "position_y": 375
+    }
+  ],
+  "interactables": [
+    {
+      "name": "Door 10x50 (Interactable)",
+      "type": "wall",
+      "isStatic": false,
+      "sprite": "images/scenery/door_use.png",
+      "collisionType": "box",
+      "hit_off_x": 0,
+      "hit_off_y": 0,
+      "height": 100,
+      "width": 20,
+      "speed": 50,
+      "range": 75,
+      "health": 10,
+      "frame_h": 100,
+      "frame_w": 120,
+      "frames_per_line": 7,
+      "position_x": 608,
+      "position_y": 100,
+      "interact_offset_x": 10,
+      "interact_offset_y": 50
+    },
+    {
+      "name": "Door Up 10x50 (Interactable)",
+      "type": "wall",
+      "isStatic": false,
+      "sprite": "images/scenery/door_use_up.png",
+      "collisionType": "box",
+      "hit_off_x": 100,
+      "hit_off_y": 0,
+      "height": -1,
+      "width": -1,
+      "speed": 50,
+      "range": 75,
+      "health": 10,
+      "frame_h": 120,
+      "frame_w": 100,
+      "frames_per_line": 7,
+      "position_x": 129,
+      "position_y": 275,
+      "interact_offset_x": 50,
+      "interact_offset_y": 110
+    }
+  ]
+}

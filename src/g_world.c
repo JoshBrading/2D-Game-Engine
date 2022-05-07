@@ -168,7 +168,7 @@ void world_load( char *filename )
                 door->bounds.y = door->position.y + hit_offset_y;
             }
 
-            slog( "DoorP: %f, O: %i, B: %f", door->position.y, hit_offset_y, door->bounds.y );
+          //  slog( "DoorP: %f, O: %i, B: %f", door->position.y, hit_offset_y, door->bounds.y );
             
         }
     }

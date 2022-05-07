@@ -3,15 +3,33 @@
 #include "gf2d_sprite.h"
 #include <SDL_ttf.h>
 #include "simple_logger.h"
+#include "simple_json.h"
 #include "gfc_list.h"
 #include "g_globals.h"
+
+#include "g_entity.h"
+#include "g_static_entity.h"
+
+void editor_populate_list( MenuDropdown *drop, SJson *list, Vector2D position, float padding );
+void editor_instantiate( Menu *self, SJson *json );
+Uint8 editor_check_for_selection( Vector2D p, SDL_Rect r );
+
+Entity *editor_instantiate_entity( SJson *json, Vector2D position );
+StaticEntity *editor_instantiate_static_entity( SJson *json, Vector2D position );
+
+void editor_menu_think( Menu *self );
+Menu *menu;
+
+static SJson *entity_list, *static_entity_list, *interactable_list;
 
 Menu* editor_load()
 {
 	entity_manager_clear();
-    Menu *menu = menu_new();
+    menu = menu_new();
 
     menu_g_state_change( menu, G_EDIT );
+
+    menu->think = editor_menu_think;
 
     menu->tag = "editor";
 
@@ -19,8 +37,8 @@ Menu* editor_load()
     menu->selector_target_pos = vector2d( 128, 317 );
     menu->selector_position = vector2d( 128, 317 );
 
-  //  menu->background = gf2d_sprite_load_image( "images/gui/main_bg.png" );
-    menu->enabled = true;
+   // menu->background = gf2d_sprite_load_image( "images/gui/main_bg.png" );
+    menu->enabled = false;
 
     MenuText *title = menu_text_new();
     title->text = "EDITOR";
@@ -28,18 +46,58 @@ Menu* editor_load()
     title->position = vector2d( 32, 16 );
     gfc_list_append( menu->labels, title );
 
-    MenuImage *gradi = menu_image_new();
-    gradi->position = vector2d( 0, 0 );
-    gradi->sprite = gf2d_sprite_load_image( "images/gui/background.png" );
-    gfc_list_append( menu->images, gradi );
-    MenuDropdown *drp_create_entity = menu_dropdown_new();
 
+    //==== DRP_CREATE_ENTITY ===========================
+    MenuDropdown *drp_create_entity = menu_dropdown_new();
+    drp_create_entity->active = false;
+    drp_create_entity->label.text = "drp_create_entity_back";
+
+    MenuButton *drp_create_entity_back = menu_button_new();
+    drp_create_entity_back->label.text = "BACK";
+    drp_create_entity_back->action = menu_deactivate_dropdown;
+    drp_create_entity_back->data = drp_create_entity;
+    drp_create_entity_back->position = vector2d( 442, 64 );
+    gfc_list_append( drp_create_entity->buttons, drp_create_entity_back );
+    drp_create_entity->current_button = drp_create_entity_back;
+
+
+    //==== DRP_CREATE_STATIC_ENTITY ===========================
+    MenuDropdown *drp_create_static_entity = menu_dropdown_new();
+    drp_create_static_entity->label.text = "drp_create_static_entity";
+    drp_create_static_entity->active = false;
+
+    MenuButton *drp_create_static_entity_back = menu_button_new();
+    drp_create_static_entity_back->label.text = "BACK";
+    drp_create_static_entity_back->action = menu_deactivate_dropdown;
+    drp_create_static_entity_back->data = drp_create_static_entity;
+    drp_create_static_entity_back->position = vector2d( 442, 90 );
+    gfc_list_append( drp_create_static_entity->buttons, drp_create_static_entity_back );
+    drp_create_static_entity->current_button = drp_create_static_entity_back;
+
+    //==== DRP_CREATE_INTERACTABLE ===========================
+    MenuDropdown *drp_create_interactable = menu_dropdown_new();
+    drp_create_interactable->label.text = "drp_create_interactable";
+    drp_create_interactable->active = false;
+
+    MenuButton *drp_create_interactable_back = menu_button_new();
+    drp_create_interactable_back->label.text = "BACK";
+    drp_create_interactable_back->action = menu_deactivate_dropdown;
+    drp_create_interactable_back->data = drp_create_interactable;
+    drp_create_interactable_back->position = vector2d( 442, 116 );
+    gfc_list_append( drp_create_interactable->buttons, drp_create_interactable_back );
+    drp_create_interactable->current_button = drp_create_interactable_back;
+
+
+
+    //==== DRP_CREATE ===========================
     MenuDropdown *drp_create = menu_dropdown_new();
     drp_create->active = false;
     drp_create->label.position = vector2d( 0, 128 );
 
     MenuButton *btn_create_ent = menu_button_new();
     btn_create_ent->label.text = "ENTITIES";
+    btn_create_ent->action = menu_activate_dropdown;
+    btn_create_ent->data = drp_create_entity;
     btn_create_ent->position = vector2d( 232, 64 );
     gfc_list_append( drp_create->buttons, btn_create_ent );
     drp_create->current_button = btn_create_ent;
@@ -47,14 +105,16 @@ Menu* editor_load()
     MenuButton *btn_create_sEnt = menu_button_new();
     btn_create_sEnt->label.text = "S_ENTITIES";
     btn_create_sEnt->action = menu_activate_dropdown;
-    btn_create_sEnt->data = drp_create_entity;
+    btn_create_sEnt->data = drp_create_static_entity;
     btn_create_sEnt->position = vector2d( 232, 90 );
     gfc_list_append( drp_create->buttons, btn_create_sEnt );
 
-    MenuButton *btn_create_obj = menu_button_new();
-    btn_create_obj->label.text = "OBJECTIVES";
-    btn_create_obj->position = vector2d( 232, 116 );
-    gfc_list_append( drp_create->buttons, btn_create_obj );
+    MenuButton *btn_create_interactable = menu_button_new();
+    btn_create_interactable->label.text = "INTERACTABLES";
+    btn_create_interactable->action = menu_activate_dropdown;
+    btn_create_interactable->data = drp_create_interactable;
+    btn_create_interactable->position = vector2d( 232, 116 );
+    gfc_list_append( drp_create->buttons, btn_create_interactable );
 
     MenuButton *btn_create_rtrn = menu_button_new();
     btn_create_rtrn->label.text = "BACK";
@@ -63,66 +123,271 @@ Menu* editor_load()
     btn_create_rtrn->position = vector2d( 232, 142 );
     gfc_list_append( drp_create->buttons, btn_create_rtrn );
 
-    drp_create->label.text = "TEST";
+    drp_create->label.text = "CREATE";
     gfc_list_append( menu->dropdowns, drp_create );
 
-    drp_create_entity->active = false;
-    drp_create_entity->label.position = vector2d( 0, 128 );
 
-    MenuButton *btn_create_ent_ex = menu_button_new();
-    btn_create_ent_ex->label.text = "WALL_100x20";
-    btn_create_ent_ex->position = vector2d( 442, 90 );
-    gfc_list_append( drp_create_entity->buttons, btn_create_ent_ex );
-    drp_create_entity->current_button = btn_create_ent_ex;
 
-    MenuButton *btn_create_sEnt_ex = menu_button_new();
-    btn_create_sEnt_ex->label.text = "WALL_100x20 (Destructible)";
-    btn_create_sEnt_ex->position = vector2d( 442, 116 );
-    gfc_list_append( drp_create_entity->buttons, btn_create_sEnt_ex );
-
-    MenuButton *btn_create_obj_ex = menu_button_new();
-    btn_create_obj_ex->label.text = "WALL_20x100_90D";
-    btn_create_obj_ex->position = vector2d( 442, 142 );
-    gfc_list_append( drp_create_entity->buttons, btn_create_obj_ex );
-
-    MenuButton *btn_create_rtrn_ex = menu_button_new();
-    btn_create_rtrn_ex->label.text = "BACK";
-    btn_create_rtrn_ex->action = menu_deactivate_dropdown;
-    btn_create_rtrn_ex->data = drp_create_entity;
-    btn_create_rtrn_ex->position = vector2d( 442, 168 );
-    gfc_list_append( drp_create_entity->buttons, btn_create_rtrn_ex );
-
-    drp_create_entity->label.text = "TEST";
+    //==== DRP_CREATE_LINK ===========================
+    gfc_list_append( menu->dropdowns, drp_create_static_entity );
     gfc_list_append( menu->dropdowns, drp_create_entity );
+    gfc_list_append( menu->dropdowns, drp_create_interactable );
+    //==== DRP_CREATE_END ===========================
 
-    MenuButton *btn_game_select = menu_button_new();
-    btn_game_select->selected = true;
-    btn_game_select->action = menu_activate_dropdown;
-    btn_game_select->data = drp_create;
-    btn_game_select->label.text = "CREATE";
-    btn_game_select->position = vector2d( 16, 64 );
-    gfc_list_append( menu->buttons, btn_game_select );
-    menu->current_button = btn_game_select;
+
+    MenuButton *btn_create = menu_button_new();
+    btn_create->selected = true;
+    btn_create->action = menu_activate_dropdown;
+    btn_create->data = drp_create;
+    btn_create->label.text = "CREATE";
+    btn_create->position = vector2d( 16, 64 );
+    gfc_list_append( menu->buttons, btn_create );
+    menu->current_button = btn_create;
 
     MenuButton *btn_edit = menu_button_new();
     btn_edit->label.text = "MODIFY";
     btn_edit->position = vector2d( 16, 90 );
     gfc_list_append( menu->buttons, btn_edit );
 
-    MenuButton *btn_settings = menu_button_new();
-    btn_settings->label.text = "RESET";
-    btn_settings->position = vector2d( 16, 116 );
-    gfc_list_append( menu->buttons, btn_settings );
+    MenuButton *btn_save = menu_button_new();
+    btn_save->label.text = "SAVE";
+    btn_save->position = vector2d( 16, 116 );
+    gfc_list_append( menu->buttons, btn_save );
 
-    MenuButton *btn_quit = menu_button_new();
-    btn_quit->action = menu_quit;
-    btn_quit->label.text = "QUIT";
-    btn_quit->position = vector2d( 16, 142 );
-    gfc_list_append( menu->buttons, btn_quit );
+    MenuButton *btn_load = menu_button_new();
+    btn_load->label.text = "LOAD";
+    btn_load->position = vector2d( 16, 142 );
+    gfc_list_append( menu->buttons, btn_load );
+
+    MenuButton *btn_leave = menu_button_new();
+    btn_leave->label.text = "LEAVE";
+    btn_leave->position = vector2d( 16, 168 );
+    gfc_list_append( menu->buttons, btn_leave );
+
+    MenuButton *btn_instantiate = menu_button_new();
+    btn_instantiate->action = menu_quit;
+    btn_instantiate->label.text = "QUIT";
+    btn_instantiate->position = vector2d( 16, 194 );
+    gfc_list_append( menu->buttons, btn_instantiate );
+
+
+
+    // TODO: MOVE TO OWN FUNCTION ===========================
+    SJson *json;
+    char *filename = "editor/asset_list.json";
+    json = sj_load( filename );
+
+    if (!json)
+    {
+        slog( "Failed to load json file (%s)", filename );
+        return NULL;
+    }
+
+    entity_list = sj_object_get_value( json, "entities" );
+    static_entity_list = sj_object_get_value( json, "scenery" );
+    interactable_list = sj_object_get_value( json, "interactables" );
+
+    if (!entity_list)
+        slog( "Failed to find entities in (%s)", filename );
+    else
+        editor_populate_list( drp_create_entity, entity_list, vector2d( 442, 90 ), 26 );
+
+    if (!static_entity_list)
+        slog( "Failed to find scenery in (%s)", filename );
+    else
+        editor_populate_list( drp_create_static_entity, static_entity_list, vector2d( 442, 116 ), 26 );
+
+    if (!interactable_list)
+        slog( "Failed to find interactables in (%s)", filename );
+    else
+        editor_populate_list( drp_create_interactable, interactable_list, vector2d( 442, 142 ), 26 );
 
 }
 
-void editor_instantiate_entity( Menu* self, void* data )
+void editor_populate_create( Menu *menu, SJson asset_list, Vector2D position, float padding )
 {
-       
+    // Simplify in the future to allow new object types from json
+}
+
+void editor_populate_list( MenuDropdown *drop, SJson* list, Vector2D position, float padding )
+{
+    if (!drop) return;
+    if (!list) return;
+
+    Uint32 asset_count = sj_array_get_count( list );
+
+   // sj_echo( list );
+
+    for (int i = 0; i < asset_count; i++)
+    {
+        SJson *data;
+        char *name;
+
+        data = sj_array_get_nth( list, i );
+        name = sj_get_string_value( sj_object_get_value( data, "name" ) );
+
+        MenuButton *btn_instantiate = menu_button_new();
+        btn_instantiate->action = menu_quit;
+        btn_instantiate->label.text = name;
+        btn_instantiate->action = editor_instantiate;
+        btn_instantiate->data = data;
+        btn_instantiate->position = vector2d( position.x, position.y + ( padding * i ) );
+        gfc_list_append( drop->buttons, btn_instantiate );
+    }
+}
+
+void editor_instantiate( Menu* self, SJson* json )
+{
+    Vector2D position = self->floating_menu_offset;
+    short is_static;
+
+    sj_get_bool_value( sj_object_get_value( json, "isStatic" ), &is_static );
+
+    if (is_static)
+    {
+        editor_instantiate_static_entity( json, position );
+        return;
+    }
+
+    editor_instantiate_entity( json, position );
+
+}
+
+Entity *editor_instantiate_entity( SJson *json, Vector2D position )
+{
+
+}
+
+StaticEntity *editor_instantiate_static_entity( SJson *json, Vector2D position )
+{
+    char *filename;
+    Uint32 x = -1;
+    Uint32 y = -1;
+
+    Uint32 height = -1;
+    Uint32 width = -1;
+
+    StaticEntity *sEnt;
+    sEnt = static_entity_new();
+    if (!sEnt) return;
+
+    filename = sj_get_string_value( sj_object_get_value( json, "sprite" ) );
+
+    sj_get_integer_value( sj_object_get_value( json, "height" ), &height );
+    sj_get_integer_value( sj_object_get_value( json, "width" ), &width );
+
+    sEnt->sprite = gf2d_sprite_load_image( filename );
+    sEnt->position = position;
+
+    sEnt->collision_type = sj_get_string_value( sj_object_get_value( json, "collisionType" ) );
+    if (strcmp( sEnt->collision_type, "box" ) == 0)
+    {
+        if (height == -1 || width == -1)
+        {
+            sEnt->bounds.w = sEnt->sprite->frame_w;
+            sEnt->bounds.h = sEnt->sprite->frame_h;
+        }
+        else
+        {
+            sEnt->bounds.w = width;
+            sEnt->bounds.h = height;
+        }
+    }
+    else if (strcmp( sEnt->collision_type, "quad" ) == 0)
+    {
+        sEnt->quad_bounds.vert1 = vector2d( sEnt->position.x, sEnt->position.y + 70.5f );
+        sEnt->quad_bounds.vert2 = vector2d( sEnt->position.x + 70.5f, sEnt->position.y );
+        sEnt->quad_bounds.vert3 = vector2d( sEnt->position.x + 87, sEnt->position.y + 17.5f );
+        sEnt->quad_bounds.vert4 = vector2d( sEnt->position.x + 17.5f, sEnt->position.y + 88 );
+    }
+    else
+    {
+        slog( "Failed to get collision type" );
+    }
+
+
+    if (strcmp( sj_get_string_value( sj_object_get_value( json, "type" ) ), "background" ) == 0)
+    {
+        sEnt->position.x = 0;
+        sEnt->position.y = 0;
+    }
+    else
+    {
+        sEnt->bounds.x = sEnt->position.x;
+        sEnt->bounds.y = sEnt->position.y;
+    }
+}
+
+
+void editor_menu_think( Menu *self)
+{
+//    if (!menu) return;
+//
+//    Uint8 moved = false;
+//    const Uint8 *keys;
+//    keys = SDL_GetKeyboardState( NULL );
+//
+//    SDL_Event e;
+//    SDL_PollEvent( &e );
+//
+//    int mx, my;
+//    SDL_GetMouseState( &mx, &my );
+//
+//    if (e.type == SDL_MOUSEBUTTONDOWN)
+//    {
+//        if (e.button.button == SDL_BUTTON_RIGHT)
+//        {
+//            menu_open( menu );
+//            menu->floating_menu_offset = vector2d( mx, my );
+//        }
+//    }
+//
+}
+
+void editor_think()
+{
+    if (!menu) return;
+
+    Uint8 moved = false;
+    const Uint8 *keys;
+    keys = SDL_GetKeyboardState( NULL );
+
+    SDL_Event e;
+    SDL_PollEvent( &e );
+
+    int mx, my;
+    SDL_GetMouseState( &mx, &my );
+
+    if (e.type == SDL_MOUSEBUTTONDOWN)
+    {
+        if (e.button.button == SDL_BUTTON_RIGHT)
+        {
+            menu_open( menu );
+            menu->floating_menu_offset = vector2d( mx, my );
+        }
+        if (e.button.button == SDL_BUTTON_LEFT)
+        {
+            if( editor_check_for_selection(vector2d(mx, my), menu->current_button->bounds))
+            {
+                if (menu->current_button->action) menu->current_button->action( menu, menu->current_button->data );
+            }
+            else
+            {
+                menu_close( menu );
+            }
+        }
+    }
+
+}
+
+Uint8 editor_check_for_selection( Vector2D p, SDL_Rect r ) // Why doesnt including collision.h work here?
+{
+    if (p.x >= r.x &&
+         p.x <= r.x + r.w &&
+         p.y >= r.y &&
+         p.y <= r.y + r.h)
+    {
+        return true;
+    }
+    return false;
 }

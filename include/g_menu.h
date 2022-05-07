@@ -87,6 +87,8 @@ typedef struct Menu_S
 	List			*dropdowns; /**<A pointer to a list of MenuDropdown*/
 	MenuButton		*current_button; /**<A pointer to the current MenuButton*/
 
+	Vector2D		floating_menu_offset;
+
 	Sprite			*selector_sprite; /**<A pointer to the sprite of the selector for this menu*/
 	Vector2D		selector_position; /**<Current position of the selector*/
 	Vector2D		selector_target_pos; /**<Target position of the selector*/
@@ -97,6 +99,7 @@ typedef struct Menu_S
 
 	List			*nav_btn_ctx; /**<A pointer to the current button list in the current context*/
 
+	void			(*think)(struct Menu_S *self);
 	void			(*update)(struct Menu_S *self); /**<A pointer to the update function*/
 	void			(*draw)(struct Menu_S *self); /**<A pointer to the draw function*/
 	void			(*free)(struct Menu_S *self); /**<A pointer to the free function*/
@@ -156,6 +159,12 @@ MenuDropdown *menu_dropdown_new();
 void menu_free( Menu *self );
 
 /**
+ * @brief think the provided menu
+ * @param self the menu to update
+ */
+void menu_think( Menu *self );
+
+/**
  * @brief updates the provided menu
  * @param self the menu to update
  */
@@ -172,6 +181,11 @@ void menu_update_fixed( Menu *self );
  * @param self the menu to draw
  */
 void menu_draw( Menu *self );
+
+/**
+ * @brief run the think function for all active menus
+ */
+void menu_manager_think_all();
 
 /**
  * @brief run the update function for all active menus
