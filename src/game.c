@@ -345,7 +345,7 @@ Uint8 m = true;
         }
 
 
-
+        editor_draw();
         menu_manager_draw_all();
 
         if (g_time > time + 20)

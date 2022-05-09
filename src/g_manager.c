@@ -14,7 +14,7 @@ static timing_debug = false;
 
 void game_load_mission( char* world_name )
 {
-	world_load( "config/asset_list.json" );
+	world_load( world_name );
 }
 
 void game_load_editor()

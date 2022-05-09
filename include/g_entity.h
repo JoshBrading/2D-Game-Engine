@@ -196,6 +196,8 @@ void entity_manager_update_all();
  */
 void entity_manager_update_fixed_all();
 
+Entity *entity_manager_get_closest( Entity *self, float range, Uint8 teamMask, char *tagMask );
+
 EntityManager *entity_manager_get();
 
 void set_health( Entity* self, float damage, Entity* inflictor );

@@ -6,6 +6,7 @@
 #include "simple_json.h"
 #include "gfc_list.h"
 #include "g_globals.h"
+#include "gf2d_draw.h"
 
 #include "g_entity.h"
 #include "g_static_entity.h"
@@ -13,14 +14,21 @@
 void editor_populate_list( MenuDropdown *drop, SJson *list, Vector2D position, float padding );
 void editor_instantiate( Menu *self, SJson *json );
 Uint8 editor_check_for_selection( Vector2D p, SDL_Rect r );
-
 Entity *editor_instantiate_entity( SJson *json, Vector2D position );
 StaticEntity *editor_instantiate_static_entity( SJson *json, Vector2D position );
+void editor_update_selection( int mx, int my, SDL_Event e, const Uint8 *keys );
+void editor_select( int mx, int my, SDL_Event e );
+void editor_deselect();
+void editor_mouse_cooldown_reset();
+void editor_save();
 
-void editor_menu_think( Menu *self );
-Menu *menu;
 
+static Entity *edit_ent;
+static StaticEntity *edit_sEnt;
+static Menu *menu;
 static SJson *entity_list, *static_entity_list, *interactable_list;
+Uint32 interact_cooldown = 100;
+Uint32 cooldown_timer = 0;
 
 Menu* editor_load()
 {
@@ -29,7 +37,7 @@ Menu* editor_load()
 
     menu_g_state_change( menu, G_EDIT );
 
-    menu->think = editor_menu_think;
+ //   menu->think = editor_menu_think;
 
     menu->tag = "editor";
 
@@ -151,6 +159,7 @@ Menu* editor_load()
 
     MenuButton *btn_save = menu_button_new();
     btn_save->label.text = "SAVE";
+    btn_save->action = editor_save;
     btn_save->position = vector2d( 16, 116 );
     gfc_list_append( menu->buttons, btn_save );
 
@@ -204,6 +213,65 @@ Menu* editor_load()
 
 }
 
+void editor_save()
+{
+    SJson *json, *asset_list;
+
+    asset_list = sj_array_new();
+
+    StaticEntityManager *sem = static_entity_manager_get();
+    for (int i = 0; i < sem->static_entity_count; i++)
+    {
+        if (!sem->static_entity_list[i]._inuse)
+        {
+            continue;
+        }
+
+       //     "name":"Wall 25x100",
+       //     "type" : "static",
+       //     "isStatic" : true,
+       //     "sprite" : "images/scenery/wall_25x100.png",
+       //     "collisionType" : "box",
+       //     "height" : null,
+       //     "width" : null,
+       //     "position_x" : 104,
+       //     "position_y" : 0
+
+        SJson *asset, *name, *type, *isStatic, *sprite, *collisionType, *height, *width, *position_x, *position_y;
+
+        name = sj_new_str( "" );
+        type = sj_new_str( "static" );
+        isStatic = sj_new_bool( true );
+        sprite = sj_new_str( sem->static_entity_list[i].sprite->filepath );
+        collisionType = sj_new_str( "box" );
+        height = sj_null_new();
+        width = sj_null_new();
+        position_x = sj_new_float( sem->static_entity_list[i].position.x );
+        position_y = sj_new_float( sem->static_entity_list[i].position.y );
+
+        asset = sj_object_new();
+
+        sj_object_insert( asset, "name", name );
+        sj_object_insert( asset, "type", type );
+        sj_object_insert( asset, "isStatic", isStatic );
+        sj_object_insert( asset, "sprite", sprite );
+        sj_object_insert( asset, "collisionType", collisionType );
+        sj_object_insert( asset, "height", height );
+        sj_object_insert( asset, "width", width );
+        sj_object_insert( asset, "position_x", position_x );
+        sj_object_insert( asset, "position_y", position_y );
+    
+        sj_array_append( asset_list, asset );
+        
+    }
+
+    json = sj_object_new();
+
+    sj_object_insert( json, "asset_list", asset_list );
+
+    sj_save( json, "test.json" );
+}
+
 void editor_populate_create( Menu *menu, SJson asset_list, Vector2D position, float padding )
 {
     // Simplify in the future to allow new object types from json
@@ -246,11 +314,13 @@ void editor_instantiate( Menu* self, SJson* json )
     if (is_static)
     {
         editor_instantiate_static_entity( json, position );
-        return;
+    }
+    else
+    {
+        editor_instantiate_entity( json, position );
     }
 
-    editor_instantiate_entity( json, position );
-
+    cooldown_timer = g_time + interact_cooldown;
 }
 
 Entity *editor_instantiate_entity( SJson *json, Vector2D position )
@@ -316,6 +386,11 @@ StaticEntity *editor_instantiate_static_entity( SJson *json, Vector2D position )
         sEnt->bounds.x = sEnt->position.x;
         sEnt->bounds.y = sEnt->position.y;
     }
+
+    menu_close( menu );
+    edit_sEnt = sEnt;
+
+    return sEnt;
 }
 
 
@@ -375,12 +450,167 @@ void editor_think()
             {
                 menu_close( menu );
             }
+           // if (cooldown_timer < g_time)
+           // {
+           //     editor_select( mx, my, e );
+           // }
+
         }
     }
 
+
+
+
+
+    editor_update_selection( mx, my, e, keys );
 }
 
-Uint8 editor_check_for_selection( Vector2D p, SDL_Rect r ) // Why doesnt including collision.h work here?
+void editor_select( int mx, int my, SDL_Event e )
+{
+    EntityManager *em = entity_manager_get();
+    StaticEntityManager *sem = static_entity_manager_get();
+
+    Vector2D select_point = vector2d( mx, my );
+
+    for (int i = 0; i < em->entity_count; i++)
+    {
+        if (!em->entity_list[i]._inuse)// not used yet
+        {
+            continue;// skip this iteration of the loop
+        }
+        SDL_Rect rect = { em->entity_list[i].bounds.x, em->entity_list[i].bounds.y, em->entity_list[i].bounds.w, em->entity_list[i].bounds.h };
+        if (editor_check_for_selection( select_point, rect ))
+        {
+            edit_ent = &em->entity_list[i];
+
+            editor_mouse_cooldown_reset();
+
+            return;
+        }
+    }
+
+    for (int i = 0; i < sem->static_entity_count; i++)
+    {
+        if (!sem->static_entity_list[i]._inuse)// not used yet
+        {
+            continue;// skip this iteration of the loop
+        }
+        SDL_Rect rect = { sem->static_entity_list[i].bounds.x, sem->static_entity_list[i].bounds.y, sem->static_entity_list[i].bounds.w, sem->static_entity_list[i].bounds.h };
+        if (editor_check_for_selection( select_point, rect ))
+        {
+            edit_sEnt = &sem->static_entity_list[i];
+            editor_mouse_cooldown_reset();
+
+            return;
+
+        }
+
+    }
+}
+
+void editor_mouse_cooldown_reset()
+{
+    cooldown_timer = g_time + interact_cooldown;
+}
+
+void editor_deselect()
+{
+    edit_ent = NULL;
+    edit_sEnt = NULL;
+
+    editor_mouse_cooldown_reset();
+}
+
+
+void editor_update_selection( int mx, int my, SDL_Event e, const Uint8 *keys )
+{
+    if (edit_sEnt)
+    {
+        if (keys[SDL_SCANCODE_LCTRL])
+        {
+            edit_sEnt->position.x = (10 - mx % 10) + mx;
+            edit_sEnt->position.y = (10 - my % 10) + my;
+            edit_sEnt->bounds.x = (10 - mx % 10) + mx;
+            edit_sEnt->bounds.y = (10 - my % 10) + my;
+        }
+        else
+        {
+            edit_sEnt->position.x = mx;
+            edit_sEnt->position.y = my;
+            edit_sEnt->bounds.x = mx;
+            edit_sEnt->bounds.y = my;
+
+        }
+
+
+        if (cooldown_timer < g_time)
+        {
+            if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                if (e.button.button == SDL_BUTTON_LEFT)
+                {
+                    editor_deselect();
+                }
+            }
+        }
+    }
+    else if (edit_ent)
+    {
+        if (keys[SDL_SCANCODE_LCTRL])
+        {
+            edit_ent->position.x = (10 - mx % 10) + mx;
+            edit_ent->position.y = (10 - my % 10) + my;
+            edit_ent->bounds.x = (10 - mx % 10) + mx;
+            edit_ent->bounds.y = (10 - my % 10) + my;
+        }
+        else
+        {
+            edit_ent->position.x = mx;
+            edit_ent->position.y = my;
+            edit_ent->bounds.x = mx;
+            edit_ent->bounds.y = my;
+
+        }
+
+        if (cooldown_timer < g_time)
+        {
+            if (e.type == SDL_MOUSEBUTTONDOWN)
+            {
+                if (e.button.button == SDL_BUTTON_LEFT)
+                {
+                    editor_deselect();
+                }
+            }
+        }
+    }
+    else if (cooldown_timer < g_time)
+    {
+        if (e.type == SDL_MOUSEBUTTONDOWN)
+        {
+            if (e.button.button == SDL_BUTTON_LEFT)
+            {
+                editor_select( mx, my, e );
+            }
+        }
+        
+    }
+}
+
+void editor_draw()
+{
+    if (edit_ent)
+    {
+        SDL_Rect rect = { edit_ent->bounds.x, edit_ent->bounds.y, edit_ent->bounds.w, edit_ent->bounds.h };
+        gf2d_draw_rect( rect, vector4d( 255, 255, 0, 255 ) );
+    }
+    if (edit_sEnt)
+    {
+        SDL_Rect rect = { edit_sEnt->bounds.x, edit_sEnt->bounds.y, edit_sEnt->bounds.w, edit_sEnt->bounds.h };
+        gf2d_draw_rect( rect, vector4d( 255, 255, 0, 255 ) );
+    }
+}
+
+Uint8 editor_check_for_selection( Vector2D p, SDL_Rect r ) // Why doesnt including g_collision.h work here?
 {
     if (p.x >= r.x &&
          p.x <= r.x + r.w &&

@@ -301,19 +301,25 @@ void entity_manager_update_fixed_all()
 	}
 }
 
-Entity* entity_manager_get_entity_in_range( Vector2D position, float range )
+Entity *entity_manager_get_closest( Entity *self, float range, Uint8 teamMask, char *tagMask )
 {
-	int i;
-	for (i = 0; i < entity_manager.entity_count; i++)
+	if (!self) return;
+	Entity *ent = NULL;
+	float distance;
+	for (int i = 0; i < entity_manager.entity_count; i++)
 	{
-		if (!entity_manager.entity_list[i]._inuse)// not used yet
+		if (self != &entity_manager.entity_list[i] && entity_manager.entity_list[i].tag != tagMask && entity_manager.entity_list[i].team != teamMask)
 		{
-			continue;// skip this iteration of the loop
-		}
-	//	entity_update( &entity_manager.entity_list[i] );
-	}
+			distance = vector2d_magnitude_between( self->position, entity_manager.entity_list[i].position );
 
-	return NULL;
+			if (distance < range)
+			{
+				range = distance;
+				ent = &entity_manager.entity_list[i];
+			}
+		}
+	}
+	return ent;
 }
 
 EntityManager *entity_manager_get()
