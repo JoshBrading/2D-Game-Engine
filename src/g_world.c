@@ -5,11 +5,14 @@
 #include "g_door.h"
 #include "g_static_entity.h"
 
+void world_spawn_friendly( char* filename, Vector2D pos );
+void world_spawn_enemies();
 
 void world_load( char *filename )
 {
     SJson *json, *wjson;
 
+    slog( filename );
     //sj_enable_debug();
 
     json = sj_load( filename );
@@ -33,10 +36,12 @@ void world_load( char *filename )
 
     Uint32 asset_count = sj_array_get_count( wjson );
 
+
+
     for (int i = 0; i < asset_count; i++)
     {
         SJson *data;
-        char *filename;
+        char *filename, *type;
         Uint32 x = -1;
         Uint32 y = -1;
 
@@ -53,6 +58,18 @@ void world_load( char *filename )
 
         filename = sj_get_string_value( sj_object_get_value( data, "sprite" ) );
 
+        type = sj_get_string_value( sj_object_get_value( data, "type" ) );
+
+        //if (strcmp( "friendly", type ) == 0)
+        //{
+        //
+        //    world_spawn_friendly( "config/compantion_1.json", vector2d( x, y ) );
+        //    world_spawn_friendly( "config/compantion_2.json", vector2d( x, y ) );
+        //    world_spawn_friendly( "config/compantion_3.json", vector2d( x, y ) );
+        //    world_spawn_friendly( "config/compantion_4.json", vector2d( x, y ) );
+        //
+        //    continue;
+        //}
 
         short isStatic;
         sj_get_bool_value( sj_object_get_value( data, "isStatic" ), &isStatic );
@@ -172,4 +189,166 @@ void world_load( char *filename )
             
         }
     }
+
+    world_spawn_friendly( "null", vector2d( 32, 32 ) );
+    world_spawn_enemies();
+
+}
+
+void world_spawn_enemies( )
+{
+    for (int i = 0; i < 3; i++)
+    {
+        Entity *q3;
+        q3 = enemy_new();
+
+        q3->nav_zone.x = 629;
+        q3->nav_zone.y = 0;
+        q3->nav_zone.w = 550;
+        q3->nav_zone.h = 350;
+
+        q3->position.x = 800 + 80 * i;// rand() % 1050;
+        q3->position.y = 20;// rand() % 550;
+
+        q3->target_position = q3->position;
+        q3->view_range = 100;
+
+        q3->idle_time_max = 1000;
+        q3->idle_time_min = 500;
+        q3->state = ENT_WANDER;
+    }
+    for (int i = 0; i < 2; i++)
+    {
+        Entity *q3;
+        q3 = enemy_new();
+
+        q3->nav_zone.x = 629;
+        q3->nav_zone.y = 400;
+        q3->nav_zone.w = 550;
+        q3->nav_zone.h = 250;
+
+        q3->position.x = 650 + 80 * i;// rand() % 1050
+        q3->position.y = 510;// rand() % 550;
+
+        q3->target_position = q3->position;
+        q3->view_range = 100;
+
+        q3->idle_time_max = 1000;
+        q3->idle_time_min = 500;
+        q3->state = ENT_WANDER;
+    }
+    for (int i = 0; i < 2; i++)
+    {
+        Entity *q3;
+        q3 = enemy_new();
+
+        q3->nav_zone.x = 129;
+        q3->nav_zone.y = 0;
+        q3->nav_zone.w = 470;
+        q3->nav_zone.h = 250;
+
+        q3->position.x = 129 + 80 * i;// rand() % 1050
+        q3->position.y = 50;// rand() % 550;
+
+        q3->target_position = q3->position;
+        q3->view_range = 100;
+
+        q3->idle_time_max = 1000;
+        q3->idle_time_min = 500;
+        q3->state = ENT_WANDER;
+    }
+
+    for (int i = 0; i < 3; i++)
+    {
+        intel_new();
+    }
+
+    Entity *hostage = entity_new();
+    hostage->sprite = gf2d_sprite_load_image( "images/hostage.png" );
+    hostage->team = TEAM_FRIEND;
+    hostage->state = ENT_IDLE;
+    hostage->tag = "hostage";
+    hostage->scale.x = 0.125;
+    hostage->scale.y = 0.125;
+    hostage->offset.x = 16;
+    hostage->offset.y = 16;
+    hostage->bounds.w = 32;
+    hostage->bounds.h = 32;
+    hostage->bounds.x = hostage->position.x - hostage->offset.x;
+    hostage->bounds.y = hostage->position.y - hostage->offset.y;
+    hostage->toggles.B = false;
+    hostage->toggles.A = false;
+    hostage->move_speed = 3;
+    hostage->offset.x = 16;
+    hostage->offset.x = 16;
+    hostage->position = vector2d( rand() % 1000, rand() % 700 );
+    hostage->health = 999;
+
+}
+
+void world_spawn_friendly( char *filename, Vector2D pos )
+{
+    if (entity_manager_get_player()) return;
+    Entity *player = player_new();
+    player->team = TEAM_FRIEND;
+    player->position = vector2d( 64, 64 );
+    player->tag = "player";
+
+    Entity *demo;
+    demo = friendly_new();
+    demo->sprite = gf2d_sprite_load_image( "images/expo.png" );
+    demo->scale.x = 0.125;
+    demo->scale.y = 0.125;
+    demo->tag = "demo";
+    demo->offset.x = 16;
+    demo->offset.y = 16;
+
+    demo->bounds.w = 32;
+    demo->bounds.h = 32;
+    demo->bounds.x = demo->position.x - demo->offset.x;
+    demo->bounds.y = demo->position.y - demo->offset.y;
+
+    demo->nav_zone.x = 629;
+    demo->nav_zone.y = 0;
+    demo->nav_zone.w = 550;
+    demo->nav_zone.h = 350;
+
+    demo->position.y = 20 + 80;// rand() % 1050;
+    demo->position.x = 20;// rand() % 550;
+
+    demo->target_position = demo->position;
+    demo->view_range = 100;
+
+    demo->idle_time_max = 1000;
+    demo->idle_time_min = 500;
+    demo->state = ENT_WANDER;
+
+    Entity *shotgun;
+    shotgun = friendly_new();
+    shotgun->sprite = gf2d_sprite_load_image( "images/shotgun.png" );
+    shotgun->scale.x = 0.125;
+    shotgun->scale.y = 0.125;
+    shotgun->tag = "shotgun";
+    shotgun->offset.x = 16;
+    shotgun->offset.y = 16;
+
+    shotgun->bounds.w = 32;
+    shotgun->bounds.h = 32;
+    shotgun->bounds.x = shotgun->position.x - shotgun->offset.x;
+    shotgun->bounds.y = shotgun->position.y - shotgun->offset.y;
+
+    shotgun->nav_zone.x = 629;
+    shotgun->nav_zone.y = 0;
+    shotgun->nav_zone.w = 550;
+    shotgun->nav_zone.h = 350;
+
+    shotgun->position.y = 20 + 80;// rand() % 1050;
+    shotgun->position.x = 20;// rand() % 550;
+
+    shotgun->target_position = shotgun->position;
+    shotgun->view_range = 100;
+
+    shotgun->idle_time_max = 1000;
+    shotgun->idle_time_min = 500;
+    shotgun->state = ENT_WANDER;
 }

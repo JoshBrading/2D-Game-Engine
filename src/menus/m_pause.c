@@ -3,6 +3,8 @@
 #include "g_editor.h"
 #include "g_manager.h"
 
+void menu_pause_resume( Menu* self);
+
 Menu *menu_pause_load()
 {
     Menu *menu = menu_new();
@@ -25,7 +27,7 @@ Menu *menu_pause_load()
     MenuButton *resume_btn = menu_button_new();
     resume_btn->label.text = "RESUME";
     resume_btn->position = vector2d( 279, 317 );
-    resume_btn->action = menu_close;
+    resume_btn->action = menu_pause_resume;
     gfc_list_append( menu->buttons, resume_btn );
     menu->current_button = resume_btn;
 
@@ -83,4 +85,10 @@ Menu *menu_pause_load()
     gfc_list_append( menu->labels, obj3 );
 
     return menu;
+}
+
+void menu_pause_resume( Menu* self)
+{
+    menu_close( self );
+    game_state_change( G_RUN );
 }

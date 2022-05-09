@@ -8,6 +8,8 @@
 #include "g_globals.h"
 #include "gf2d_draw.h"
 
+#include "g_manager.h"
+
 #include "g_entity.h"
 #include "g_static_entity.h"
 
@@ -170,6 +172,7 @@ Menu* editor_load()
 
     MenuButton *btn_leave = menu_button_new();
     btn_leave->label.text = "LEAVE";
+    btn_leave->action = game_mission_quit;
     btn_leave->position = vector2d( 16, 168 );
     gfc_list_append( menu->buttons, btn_leave );
 
@@ -264,12 +267,93 @@ void editor_save()
         sj_array_append( asset_list, asset );
         
     }
+    
+    EntityManager *em = entity_manager_get();
+    for (int i = 999; i < em->entity_count; i++)
+    {
+        if (!em->entity_list[i]._inuse)
+        {
+            continue;
+        }
+
+       //     "name":"Wall 25x100",
+       //     "type" : "static",
+       //     "isStatic" : true,
+       //     "sprite" : "images/scenery/wall_25x100.png",
+       //     "collisionType" : "box",
+       //     "height" : null,
+       //     "width" : null,
+       //     "position_x" : 104,
+       //     "position_y" : 0
+
+        SJson *asset, *name, *type, *isStatic, *sprite, *collisionType, *health, *speed, *range, *height, *width, *position_x, *position_y, *offx, *offy, *scale_x, *scale_y, *interact_x, *interact_y, *frame_w, *frame_h, *frames_per_line;
+
+        name = sj_new_str( "" );
+        type = sj_new_str( "static" );
+        isStatic = sj_new_bool( true );
+        sprite = sj_new_str( em->entity_list[i].sprite->filepath );
+        collisionType = sj_new_str( "box" );
+        height = sj_null_new();
+        width = sj_null_new();
+        position_x = sj_new_float( em->entity_list[i].position.x );
+        position_y = sj_new_float( em->entity_list[i].position.y );
+
+        health = sj_new_float( em->entity_list[i].health );
+        speed = sj_new_float( em->entity_list[i].speed.x );
+        range = sj_new_float( em->entity_list[i].interact_radius );
+        interact_x = sj_new_float( em->entity_list[i].interact_offset.x );
+        interact_y = sj_new_float( em->entity_list[i].interact_offset.y );
+        scale_x = sj_new_float( em->entity_list[i].scale.x );
+        scale_y = sj_new_float( em->entity_list[i].scale.y );
+        frame_w = sj_new_int( em->entity_list[i].sprite->frame_w );
+        frame_h = sj_new_int( em->entity_list[i].sprite->frame_h );
+        frames_per_line = sj_new_int( em->entity_list[i].sprite->frames_per_line );
+
+        offx = sj_new_float( em->entity_list[i].offset.x );
+        offy = sj_new_float( em->entity_list[i].offset.y );
+
+        asset = sj_object_new();
+
+
+        sj_object_insert( asset, "name", name );
+        sj_object_insert( asset, "type", type );
+        sj_object_insert( asset, "isStatic", isStatic );
+        sj_object_insert( asset, "sprite", sprite );
+        sj_object_insert( asset, "collisionType", collisionType );
+        sj_object_insert( asset, "height", height );
+        sj_object_insert( asset, "width", width );
+        sj_object_insert( asset, "position_x", position_x );
+        sj_object_insert( asset, "position_y", position_y );
+        sj_object_insert( asset, "health", health );
+        sj_object_insert( asset, "speed", speed );
+        sj_object_insert( asset, "range", range );
+        sj_object_insert( asset, "hit_off_x", offx );
+        sj_object_insert( asset, "hit_off_y", offy );
+        sj_object_insert( asset, "scale_x", scale_x );
+        sj_object_insert( asset, "scale_y", scale_y );
+        sj_object_insert( asset, "interact_x", interact_x );
+        sj_object_insert( asset, "interact_y", interact_y );
+        sj_object_insert( asset, "frame_w", frame_w );
+        sj_object_insert( asset, "frame_h", frame_h );
+        sj_object_insert( asset, "frames_per_line", frames_per_line );
+
+    
+        sj_array_append( asset_list, asset );
+        
+    }
 
     json = sj_object_new();
 
     sj_object_insert( json, "asset_list", asset_list );
+    int n = rand() % 100;
 
-    sj_save( json, "test.json" );
+    char lvl_name[64];
+
+    snprintf( lvl_name, sizeof( lvl_name ), "levels/custom/level_%i.json", n );
+
+    sj_save( json, "levels/custom/level_7.json" );
+
+   // sj_free( json );
 }
 
 void editor_populate_create( Menu *menu, SJson asset_list, Vector2D position, float padding )
@@ -325,7 +409,99 @@ void editor_instantiate( Menu* self, SJson* json )
 
 Entity *editor_instantiate_entity( SJson *json, Vector2D position )
 {
+    Entity *ent;
+    ent = entity_new();
+    
+    char *tag = sj_get_string_value( sj_object_get_value( json, "type" ) );
+    char *filename = sj_get_string_value( sj_object_get_value( json, "sprite" ) );
+    ent->position = position;
+    ent->sprite = gf2d_sprite_load_image(filename);
 
+    if (strcmp( tag, "spawn_point" ) == 0)
+    {
+        ent->tag == "spawn_point";
+
+        ent->scale = vector2d( 0.125, 0.125 );
+
+        menu_close( menu );
+        edit_ent = ent;
+        return ent;
+    }
+
+
+
+
+    float health, speed, range, offx, offy, height, width, scale_x, scale_y, interact_x, interact_y, interact_radius;
+    int frame_h, frame_w, frames_per_line;
+
+    sj_get_float_value( sj_object_get_value( json, "health" ), &health );
+    sj_get_float_value( sj_object_get_value( json, "speed" ), &speed );
+    sj_get_float_value( sj_object_get_value( json, "range" ), &range );
+    sj_get_float_value( sj_object_get_value( json, "hit_off_x" ), &offx );
+    sj_get_float_value( sj_object_get_value( json, "hit_off_y" ), &offy );
+    sj_get_float_value( sj_object_get_value( json, "scale_y" ), &scale_y );
+    sj_get_float_value( sj_object_get_value( json, "scale_x" ), &scale_x );
+    sj_get_float_value( sj_object_get_value( json, "height" ), &height );
+    sj_get_float_value( sj_object_get_value( json, "width" ), &width );
+    sj_get_float_value( sj_object_get_value( json, "interact_x" ), &interact_x );
+    sj_get_float_value( sj_object_get_value( json, "interact_y" ), &interact_y );
+
+    sj_get_integer_value( sj_object_get_value( json, "frame_w" ), &frame_w );
+    sj_get_integer_value( sj_object_get_value( json, "frame_h" ), &frame_h );
+    sj_get_integer_value( sj_object_get_value( json, "frames_per_line" ), &frames_per_line );
+
+    if (strcmp( tag, "door" ) == 0)
+    {
+        ent->sprite = gf2d_sprite_load_all( filename, frame_w, frame_h, frames_per_line );
+    }
+
+    ent->health = health;
+    ent->position = position;
+    ent->scale = vector2d( scale_x, scale_y );
+    ent->view_range = range;
+    ent->interact_offset = vector2d( interact_x, interact_y );
+    ent->interact_radius = range;
+
+    
+    if (width == -1 || height == -1)
+    {
+        ent->bounds.w = ent->sprite->frame_w;
+        ent->bounds.h = ent->sprite->frame_h;
+        ent->bounds.x = ent->position.x;
+        ent->bounds.y = ent->position.y;
+    }
+    else
+    {
+        ent->bounds.w = width;
+        ent->bounds.h = height;
+        ent->bounds.x = ent->position.x + offx;
+        ent->bounds.y = ent->position.y + offy;
+    }
+
+
+
+    menu_close( menu );
+    edit_ent = ent;
+
+    return ent;
+
+   //     "name": "Spawn Point",-
+   //     "type" : "wall",
+   //     "isStatic" : false,
+   //     "sprite" : "images/player.png",
+   //     "collisionType" : "box",
+   //     "hit_off_x" : 0,
+   //     "hit_off_y" : 0,
+   //     "height" : -1,
+   //     "width" : -1,
+   //     "speed" : 50,
+   //     "range" : 75,
+   //     "health" : 100,
+   //     "frame_h" : -1,
+   //     "frame_w" : -1,
+   //     "frames_per_line" : 0,
+   //     "position_x" : 608,
+   //     "position_y" : 100
 }
 
 StaticEntity *editor_instantiate_static_entity( SJson *json, Vector2D position )

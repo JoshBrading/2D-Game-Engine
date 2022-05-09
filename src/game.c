@@ -105,7 +105,7 @@ int main ( int argc, char* argv[] )
     menu_manager_init( 16 );
 
     /*demo setup*/
-    sprite = gf2d_sprite_load_image ( "images/backgrounds/bg_flat.png" );
+   // sprite = gf2d_sprite_load_image ( "images/backgrounds/bg_flat.png" );
     mouse = gf2d_sprite_load_all ( "images/pointer.png", 32, 32, 16 );
 
     //Entity *q;
@@ -179,93 +179,9 @@ int main ( int argc, char* argv[] )
     shotgun->idle_time_min = 500;
     shotgun->state = ENT_WANDER;
 
-    for (int i = 0; i < 3; i++)
-    {
-        Entity *q3;
-        q3 = enemy_new();
-
-        q3->nav_zone.x = 629;
-        q3->nav_zone.y = 0;
-        q3->nav_zone.w = 550;
-        q3->nav_zone.h = 350;
-
-        q3->position.x = 800 + 80 * i;// rand() % 1050;
-        q3->position.y = 20;// rand() % 550;
-
-        q3->target_position = q3->position;
-        q3->view_range = 100;
-
-        q3->idle_time_max = 1000;
-        q3->idle_time_min = 500;
-        q3->state = ENT_WANDER;
-    }
-    for (int i = 0; i < 2; i++)
-    {
-        Entity *q3;
-        q3 = enemy_new();
-
-        q3->nav_zone.x = 629;
-        q3->nav_zone.y = 400;
-        q3->nav_zone.w = 550;
-        q3->nav_zone.h = 250;
-
-        q3->position.x = 650 + 80 * i;// rand() % 1050
-        q3->position.y = 510;// rand() % 550;
-
-        q3->target_position = q3->position;
-        q3->view_range = 100;
-
-        q3->idle_time_max = 1000;
-        q3->idle_time_min = 500;
-        q3->state = ENT_WANDER;
-    }
-    for (int i = 0; i < 2; i++)
-    {
-        Entity *q3;
-        q3 = enemy_new();
-
-        q3->nav_zone.x = 129;
-        q3->nav_zone.y = 0;
-        q3->nav_zone.w = 470;
-        q3->nav_zone.h = 250;
-
-        q3->position.x = 129 + 80 * i;// rand() % 1050
-        q3->position.y = 50;// rand() % 550;
-
-        q3->target_position = q3->position;
-        q3->view_range = 100;
-
-        q3->idle_time_max = 1000;
-        q3->idle_time_min = 500;
-        q3->state = ENT_WANDER;
-    }
+    
 
 
-    for (int i = 0; i < 3; i++)
-    {
-        intel_new();
-    }
-   
-    Entity* hostage = entity_new();
-    hostage->sprite = gf2d_sprite_load_image( "images/hostage.png" );
-    hostage->team = TEAM_FRIEND;
-    hostage->state = ENT_IDLE;
-    hostage->tag = "hostage";
-    hostage->scale.x = 0.125;
-    hostage->scale.y = 0.125;
-    hostage->offset.x = 16;
-    hostage->offset.y = 16;
-    hostage->bounds.w = 32;
-    hostage->bounds.h = 32;
-    hostage->bounds.x = hostage->position.x - hostage->offset.x;
-    hostage->bounds.y = hostage->position.y - hostage->offset.y;
-    hostage->toggles.B = false;
-    hostage->toggles.A = false;
-    hostage->move_speed = 3;
-    hostage->offset.x = 16;
-    hostage->offset.x = 16;
-    hostage->position = vector2d( 1130, 325 );
-    hostage->health = 999;
 
     //world_load( "config/asset_list.json" );
 

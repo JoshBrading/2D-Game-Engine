@@ -34,7 +34,7 @@ Entity* intel_new()
 
 void intel_think( Entity *self )
 {
-    Entity *player = entity_manager_get_by_id( 1 );
+    Entity *player = entity_manager_get_player();
     const Uint8 *keys;
     keys = SDL_GetKeyboardState( NULL ); // get the keyboard state for this frame
 

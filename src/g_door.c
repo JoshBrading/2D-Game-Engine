@@ -27,7 +27,7 @@ void door_think( Entity* self )
 	if (self->state == DOOR_DEAD) return;
 	Vector2D interact_zone;
 	vector2d_add( interact_zone, self->position, self->interact_offset );
-	Entity *player = entity_manager_get_by_id( 1 );
+	Entity *player = entity_manager_get_player();
 
 	const Uint8 *keys;
 	keys = SDL_GetKeyboardState( NULL ); // get the keyboard state for this frame

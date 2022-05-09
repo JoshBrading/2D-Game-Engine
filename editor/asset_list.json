@@ -1,13 +1,13 @@
 {
   "entities": [
     {
-      "name": "Door 10x50 (Interactable)",
-      "type": "wall",
+      "name": "Spawn Point",
+      "type": "spawn_point",
       "isStatic": false,
       "sprite": "images/player.png",
       "collisionType": "box",
-      "hit_off_x": 0,
-      "hit_off_y": 0,
+      "hit_off_x": 16,
+      "hit_off_y": 16,
       "height": -1,
       "width": -1,
       "speed": 50,
@@ -17,7 +17,11 @@
       "frame_w": -1,
       "frames_per_line": 0,
       "position_x": 608,
-      "position_y": 100
+      "position_y": 100,
+      "scale_x": 0.125,
+      "scale_y": 0.125,
+      "interact_offset_x":10,
+      "interact_offset_y":50
     }
   ],
   "scenery": [
@@ -56,7 +60,7 @@
   "interactables": [
     {
       "name": "Door 10x50 (Interactable)",
-      "type": "wall",
+      "type": "door",
       "isStatic": false,
       "sprite": "images/scenery/door_use.png",
       "collisionType": "box",

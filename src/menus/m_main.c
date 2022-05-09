@@ -5,9 +5,13 @@
 #include "simple_json.h"
 #include "simple_logger.h"
 
+#include <windows.h>
+
 void main_menu_level_start( Menu *self, char* level_name );
 MenuDropdown* main_load_misison_drp(Menu* self);
 MenuDropdown* main_load_loadout_drp(Menu* self);
+
+MenuDropdown *main_load_custom_mission_drp( Menu* self );
 
 Menu *menu_main_load()
 {
@@ -19,7 +23,7 @@ Menu *menu_main_load()
     menu->selector_target_pos = vector2d( 128, 317 );
     menu->selector_position = vector2d( 128, 317 );
 
-    menu->background = gf2d_sprite_load_image( "images/gui/main_bg.png" );
+   // menu->background = gf2d_sprite_load_image( "images/gui/main_bg.png" );
 	menu->enabled = true;
 
 	MenuText *title = menu_text_new();
@@ -89,19 +93,30 @@ MenuDropdown *main_load_misison_drp(Menu* self)
 
     MenuButton* btn_drp_lvl2 = menu_button_new();
     btn_drp_lvl2->label.text = "LEVEL 2";
+    btn_drp_lvl2->action = main_menu_level_start;
+    btn_drp_lvl2->data = "levels/level_2.json";
     btn_drp_lvl2->position = vector2d(332, 343);
     gfc_list_append(drp_level_select->buttons, btn_drp_lvl2);
 
     MenuButton* btn_drp_lvl3 = menu_button_new();
     btn_drp_lvl3->label.text = "LEVEL 3";
+    btn_drp_lvl3->action = main_menu_level_start;
+    btn_drp_lvl3->data = "levels/level_3.json";
     btn_drp_lvl3->position = vector2d(332, 369);
     gfc_list_append(drp_level_select->buttons, btn_drp_lvl3);
+
+    MenuButton *btn_custom = menu_button_new();
+    btn_custom->label.text = "CUSTOM";
+    btn_custom->action = menu_activate_dropdown;
+    btn_custom->data = main_load_custom_mission_drp( self );
+    btn_custom->position = vector2d( 332, 395 );
+    gfc_list_append( drp_level_select->buttons, btn_custom );
 
     MenuButton* btn_drp_rtrn = menu_button_new();
     btn_drp_rtrn->label.text = "BACK";
     btn_drp_rtrn->action = menu_deactivate_dropdown;
     btn_drp_rtrn->data = drp_level_select;
-    btn_drp_rtrn->position = vector2d(332, 395);
+    btn_drp_rtrn->position = vector2d(332, 421);
     gfc_list_append(drp_level_select->buttons, btn_drp_rtrn);
 
     drp_level_select->label.text = "TEST";
@@ -109,6 +124,72 @@ MenuDropdown *main_load_misison_drp(Menu* self)
 
     return drp_level_select;
 }
+
+// CODE partially copied from https://stackoverflow.com/a/2315808
+// Specifically searching the directory for filenames
+MenuDropdown *main_load_custom_mission_drp( Menu *self )
+{
+    const wchar_t *sDir = L"levels/custom";
+    WIN32_FIND_DATA fdFile;
+    HANDLE hFind = NULL;
+    wchar_t sPath[2048];
+
+    MenuDropdown *drp = menu_dropdown_new();
+    drp->active = false;
+    drp->label.text = "Custom";
+    drp->label.position = vector2d(0, 0);
+
+    MenuButton *btn_drp_rtrn = menu_button_new();
+    btn_drp_rtrn->label.text = "BACK";
+    btn_drp_rtrn->action = menu_deactivate_dropdown;
+    btn_drp_rtrn->data = drp;
+    btn_drp_rtrn->position = vector2d( 536, 395 );
+    gfc_list_append( drp->buttons, btn_drp_rtrn );
+    drp->current_button = btn_drp_rtrn;
+
+    wsprintf( sPath, L"%s\\*.*", sDir );
+
+    float x = 536;
+    float y = 395;
+    float y_offset = 26;
+
+    if ((hFind = FindFirstFile( sPath, &fdFile )) == INVALID_HANDLE_VALUE)
+    {
+        slog( "Path not found");
+        return;
+    }
+
+    do
+    {
+        if (wcscmp( fdFile.cFileName, L"." ) != 0
+             && wcscmp( fdFile.cFileName, L".." ) != 0)
+        {
+            y += y_offset;
+            char filename[32];
+
+            snprintf( filename, sizeof(filename), "%ws", fdFile.cFileName );
+
+            slog( filename );
+            char path[64];
+            snprintf( path, sizeof(path), "levels/custom/%s", filename );
+            slog( path );
+            MenuButton *btn = menu_button_new();
+            btn->label.text = "level_7.json";
+            btn->action = main_menu_level_start;
+            btn->data = "levels/level_7.json"; // TODO: Figure out why path does not work here
+            btn->position = vector2d( x, y );
+            gfc_list_append( drp->buttons, btn );
+            
+        }
+    }
+    while (FindNextFile( hFind, &fdFile ));
+
+    FindClose( hFind );
+
+    gfc_list_append( self->dropdowns, drp );
+    return drp;
+}
+
 
 MenuDropdown *main_load_loadout_drp(Menu* self)
 {

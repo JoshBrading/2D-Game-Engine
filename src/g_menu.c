@@ -791,7 +791,7 @@ void menu_close( Menu *self )
 {
 	if(!self)return;
 	self->enabled = false;
-	g_state = G_RUN;
+	//g_state = G_RUN;
 
 	gfc_sound_play( self->close_sfx, 0, 1, -1, -1 );
 }
